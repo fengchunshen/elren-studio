@@ -1,0 +1,62 @@
+name: elren-platform
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: elren
+      POSTGRES_USER: elren
+      POSTGRES_PASSWORD: ${ELREN_DB_PASSWORD:?Set ELREN_DB_PASSWORD}
+    volumes:
+      - platform_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U elren"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+  migrate:
+    build: ./server
+    environment: &server_env
+      DATABASE_URL: postgresql+psycopg://elren:${ELREN_DB_PASSWORD}@db:5432/elren
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8081}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ASSET_DIR: /app/data/assets
+    command: [alembic, upgrade, head]
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    build: ./server
+    environment: *server_env
+    env_file:
+      - path: ./server/.env.providers
+        required: false
+    volumes:
+      - platform_assets:/app/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  worker:
+    build: ./server
+    environment: *server_env
+    env_file:
+      - path: ./server/.env.providers
+        required: false
+    command: [python, -m, app.worker]
+    volumes:
+      - platform_assets:/app/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: docker/platform-web.Dockerfile
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on: [api]
+    restart: unless-stopped
+volumes:
+  platform_db:
+  platform_assets:

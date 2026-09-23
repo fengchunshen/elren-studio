@@ -1,0 +1,65 @@
+.elren-color-field {
+    --field-base: #d5dcf9;
+    --field-blue: #5676dd;
+    --field-lilac: #9998e5;
+    --field-cyan: #adcef4;
+    --field-light: #f2f0fc;
+    --field-pink: #d3c2ec;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+}
+.elren-color-field-mark {
+    --field-base: #9daff0;
+    --field-blue: #4263cf;
+    --field-lilac: #8f83d3;
+    --field-cyan: #a1c7ed;
+    --field-light: #d7dcf7;
+    --field-pink: #c2acdf;
+}
+.theme-dark .elren-color-field-scene {
+    --field-base: #101421;
+    --field-blue: #263e79;
+    --field-lilac: #3b365d;
+    --field-cyan: #223958;
+    --field-light: #242c46;
+    --field-pink: #4b385c;
+}
+.theme-solarized .elren-color-field-scene {
+    --field-base: #eae7e4;
+    --field-light: #faf5e7;
+    --field-lilac: #a6a5ce;
+    --field-blue: #789bc5;
+}
+.elren-field-grain { opacity: .045; mix-blend-mode: soft-light; }
+.elren-field-flow { transform-origin: center; }
+.elren-field-flow-a { animation: elren-field-drift-a 24s ease-in-out infinite alternate; }
+.elren-field-flow-b { animation: elren-field-drift-b 29s ease-in-out infinite alternate; }
+.elren-field-flow { animation-delay: var(--elren-loading-offset, 0s); }
+/* The small mark needs visible internal travel during a single loading cycle.
+   Independent phases prevent the planes from stopping or reversing together. */
+.elren-color-field-mark .elren-field-flow-a { animation: elren-mark-current-a 6.8s ease-in-out infinite; animation-delay: calc(-1.7s + var(--elren-loading-offset, 0s)); }
+.elren-color-field-mark .elren-field-flow-b { animation: elren-mark-current-b 8.4s ease-in-out infinite; animation-delay: calc(-4.2s + var(--elren-loading-offset, 0s)); }
+@keyframes elren-mark-current-a {
+    0%, 100% { transform: translate(-240px, -90px) rotate(-18deg) scale(1.22); }
+    25% { transform: translate(120px, -160px) rotate(3deg) scale(1.12); }
+    50% { transform: translate(270px, 90px) rotate(24deg) scale(1.28); }
+    75% { transform: translate(-80px, 160px) rotate(4deg) scale(1.16); }
+}
+@keyframes elren-mark-current-b {
+    0%, 100% { transform: translate(220px, 130px) rotate(16deg) scale(1.16); }
+    25% { transform: translate(-140px, 150px) rotate(-12deg) scale(1.28); }
+    50% { transform: translate(-250px, -120px) rotate(-24deg) scale(1.14); }
+    75% { transform: translate(90px, -160px) rotate(-2deg) scale(1.24); }
+}
+@keyframes elren-field-drift-a {
+    from { transform: translate(-45px, -18px) rotate(-3deg) scale(1.03); }
+    to { transform: translate(65px, 25px) rotate(4deg) scale(1.1); }
+}
+@keyframes elren-field-drift-b {
+    from { transform: translate(40px, 30px) rotate(3deg) scale(1.08); }
+    to { transform: translate(-70px, -30px) rotate(-4deg) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .elren-color-field .elren-field-flow { animation: none; }
+}

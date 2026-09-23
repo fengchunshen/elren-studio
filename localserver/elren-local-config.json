@@ -1,0 +1,25 @@
+{
+    "allowed_roots": [
+        "~/Downloads",
+        "D:\\ElrenData"
+    ],
+    "proxy_allowed_hosts": [
+        "api.openai.com",
+        "generativelanguage.googleapis.com",
+        "ai.comfly.chat",
+        "vibecodingapi.ai",
+        "api-inference.modelscope.cn",
+        "yunwu.ai",
+        "muse-ai.oss-cn-hangzhou.aliyuncs.com",
+        "googlecdn.datas.systems",
+        "127.0.0.1:8188",
+        "localhost:8188"
+    ],
+    "proxy_timeout": 300,
+    "features": {
+        "file_server": true,
+        "proxy_server": true,
+        "comfy_middleware": true,
+        "log_console": true
+    }
+}

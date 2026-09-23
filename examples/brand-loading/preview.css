@@ -1,0 +1,18 @@
+.brand-preview { position: relative; isolation: isolate; min-height: 100dvh; display: flex; flex-direction: column; background: #000; overflow: clip; }
+.brand-preview header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 20px 28px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.brand-preview nav, .brand-preview footer { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.brand-preview-stage { display: grid; place-items: center; flex: 1; min-height: 260px; }
+.brand-preview footer { padding: 24px; }
+.brand-preview [aria-pressed="true"] { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.brand-preview .is-enlarged .elren-loader { --elren-mark-size: 128px; }
+.brand-preview-note { font-size: 12px; color: hsl(var(--muted-foreground)); }
+.brand-motion-preview { --elren-mark-size: 64px; }
+.brand-preview .is-enlarged .brand-motion-preview { --elren-mark-size: 128px; }
+.brand-preview .is-paused .elren-motion-mark * { animation-play-state: paused; }
+.brand-preview.is-paused .elren-field-flow { animation-play-state: paused; }
+.brand-preview .is-outline-held .elren-motion-original,
+.brand-preview .is-outline-held .elren-motion-silhouette,
+.brand-preview .is-outline-held .elren-motion-contour { animation-play-state: paused; }
+.brand-preview-timeline { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 11px; color: hsl(var(--muted-foreground)); padding-top: 12px; }
+.brand-preview-timeline [data-slot="slider"] { max-width: 200px; width: min(200px, 45vw); }
+.brand-preview-timeline > span:last-child { min-width: 30px; font-variant-numeric: tabular-nums; }

@@ -1,0 +1,47 @@
+.elren-brand {
+    --elren-mark-size: 38px;
+    --elren-wordmark-width: 126px;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 11px;
+    color: hsl(var(--foreground));
+    vertical-align: middle;
+}
+
+.elren-mark {
+    display: inline-flex;
+    flex: none;
+    width: var(--elren-mark-size, 38px);
+    aspect-ratio: 300 / 324;
+}
+
+.elren-wordmark {
+    display: block;
+    width: var(--elren-wordmark-width, 126px);
+    aspect-ratio: 1749 / 226;
+}
+
+.elren-mark > svg, .elren-wordmark > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.elren-mark [data-part^="ribbon-"] {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.elren-brand-compact {
+    --elren-mark-size: 28px;
+    --elren-wordmark-width: 100px;
+    gap: 8px;
+}
+
+@media (max-width: 639px) {
+    .elren-brand-compact {
+        --elren-mark-size: 25px;
+        --elren-wordmark-width: 88px;
+    }
+}

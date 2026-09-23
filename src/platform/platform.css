@@ -1,0 +1,19 @@
+/* Page structure; widgets share the same shadcn components and theme tokens. */
+.platform-login { @apply flex min-h-screen items-center justify-center bg-background text-sm text-foreground; }
+.platform-card { @apply w-[min(420px,92vw)] p-8; }
+.platform-card h1 { @apply mb-2.5 mt-5 text-2xl font-semibold; }
+.platform-card p { @apply mb-6 leading-relaxed text-muted-foreground; }
+.platform-card label { @apply mb-4 flex min-w-0 flex-col gap-2; }
+.platform-error { @apply py-2.5 text-destructive; }
+.admin-sidebar { @apply fixed inset-y-0 left-0 z-20 flex w-56 flex-col border-r border-border bg-card; }
+.admin-main { @apply ml-56 min-h-screen; }
+.admin-topbar { @apply flex min-h-16 items-center justify-between gap-4 border-b border-border px-8; }
+@media (max-width: 800px) {
+    .admin-sidebar { @apply static w-full border-b border-r-0; }
+    .admin-sidebar > div:first-child { @apply hidden; }
+    .admin-sidebar nav { @apply flex overflow-x-auto py-2; }
+    .admin-sidebar nav button { @apply w-auto shrink-0; }
+    .admin-sidebar > div:last-child { @apply border-t-0 py-0; }
+    .admin-main { @apply ml-0; }
+    .admin-topbar { @apply px-5; }
+}

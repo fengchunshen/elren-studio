@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="324" viewBox="0 0 300 324" fill="none">
+  <title>Elren Studio</title>
+  <defs>
+    <linearGradient id="elren-mark-fold" x1="132" y1="22" x2="260" y2="163" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#AEC7FF"/>
+      <stop offset="1" stop-color="#98DDFB"/>
+    </linearGradient>
+    <linearGradient id="elren-mark-lower" x1="9" y1="266" x2="255" y2="149" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC6D3"/>
+      <stop offset=".35" stop-color="#F4A4F4"/>
+      <stop offset=".68" stop-color="#7371FF"/>
+      <stop offset="1" stop-color="#49AFFF"/>
+    </linearGradient>
+    <linearGradient id="elren-mark-blue" x1="118" y1="4" x2="121" y2="302" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3154FF"/>
+      <stop offset=".32" stop-color="#4938FF"/>
+      <stop offset=".68" stop-color="#7B64F8" stop-opacity=".84"/>
+      <stop offset="1" stop-color="#B775EF" stop-opacity=".55"/>
+    </linearGradient>
+    <radialGradient id="elren-mark-blue-light" cx="0" cy="0" r="1" gradientTransform="translate(14 84) rotate(-17) scale(153 115)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#31A6FF" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#597CFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="elren-mark-cyan" x1="218" y1="99" x2="230" y2="231" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DDFEF"/>
+      <stop offset=".48" stop-color="#70D7F9"/>
+      <stop offset="1" stop-color="#589FFF"/>
+    </linearGradient>
+  </defs>
+  <g id="elren-mark-ribbon-lower" data-part="ribbon-lower">
+    <path d="M166 111C199 92 235 89 261 106C285 120 298 140 298 165C298 190 285 211 263 225L120 310C96 324 76 327 53 319C21 309 1 283 1 249C1 220 15 195 40 179Z" fill="url(#elren-mark-lower)"/>
+  </g>
+  <g id="elren-mark-ribbon-upper" data-part="ribbon-upper">
+    <path data-part="upper-fold" d="M129 16L261 106C284 120 298 141 298 165C298 191 285 212 261 225C235 239 211 231 184 214L39 128C16 114 8 94 8 71C8 33 40 1 79 1C97 1 114 6 129 16Z" fill="url(#elren-mark-fold)"/>
+    <path data-part="upper-face" d="M79 1C132 0 180 54 180 121V195C180 239 164 278 135 301C97 288 72 258 72 220C72 193 83 172 94 160.62L39 128C17 114 8 94 8 71C8 33 40 1 79 1Z" fill="url(#elren-mark-blue)"/>
+    <path data-part="upper-light" d="M79 1C132 0 180 54 180 121V195C180 239 164 278 135 301C97 288 72 258 72 220C72 193 83 172 94 160.62L39 128C17 114 8 94 8 71C8 33 40 1 79 1Z" fill="url(#elren-mark-blue-light)"/>
+  </g>
+  <g id="elren-mark-ribbon-tip" data-part="ribbon-tip">
+    <path d="M179 106C210 95 237 92 261 106C285 120 298 140 298 165C298 190 285 211 263 225C237 240 212 230 179 213C180 207 180 201 180 195V121C180 116 180 111 179 106Z" fill="url(#elren-mark-cyan)"/>
+  </g>
+</svg>

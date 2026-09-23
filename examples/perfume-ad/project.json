@@ -1,0 +1,286 @@
+{
+  "version": "3.8.7",
+  "type": "project",
+  "projectName": "示例 · LUNE 林间初醒",
+  "theme": "dark",
+  "nodes": [
+    {
+      "id": "demo-brief",
+      "type": "text-node",
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 240,
+      "settings": {
+        "text": "LUNE / 林间初醒\n15 秒香水广告 · 示例工作流\n\n目标：建立安静、自然、高级的品牌印象。\n画幅：16:9  ·  三镜头 × 5 秒\n色彩：森林绿 / 琥珀金 / 炭黑\n主角：LUNE NO. 01 香水"
+      }
+    },
+    {
+      "id": "demo-product",
+      "type": "input-image",
+      "x": 0,
+      "y": 285,
+      "width": 320,
+      "height": 255,
+      "content": "asset://assets/hero.png",
+      "dimensions": {
+        "w": 1672,
+        "h": 941
+      },
+      "settings": {}
+    },
+    {
+      "id": "demo-style",
+      "type": "text-node",
+      "x": 0,
+      "y": 600,
+      "width": 320,
+      "height": 280,
+      "settings": {
+        "text": "视觉约束\n\n保持瓶身、瓶盖和 LUNE 字样一致。\n光线从左上方进入，保留玻璃透光。\n少量薄雾、苔藓和蕨叶。\n镜头缓慢，避免人物、杂乱文字和过度炫光。"
+      }
+    },
+    {
+      "id": "demo-image",
+      "type": "gen-image",
+      "x": 380,
+      "y": 0,
+      "width": 440,
+      "height": 420,
+      "settings": {
+        "model": "",
+        "ratio": "16:9",
+        "resolution": "2K",
+        "imageConcurrency": 1,
+        "concurrentImages": 1,
+        "prompt": "产品视觉开发｜建议 Seedream 5.0 Pro\n保持参考图中的 LUNE 香水瓶和标签，置于薄雾森林与苔石上。暖金晨光、深绿背景、真实玻璃折射。输出电影级广告静帧。\n本节点待选择模型，示例图片已单独提供。"
+      }
+    },
+    {
+      "id": "demo-script",
+      "type": "text-node",
+      "x": 380,
+      "y": 460,
+      "width": 440,
+      "height": 140,
+      "settings": {
+        "text": "三幕脚本\n01  苏醒：晨光穿过森林，香水在苔石上出现。\n02  呼吸：露珠与玻璃折射，放大材质和气味联想。\n03  留香：镜头定格瓶身，留下安静的品牌余韵。"
+      }
+    },
+    {
+      "id": "demo-storyboard",
+      "type": "storyboard-node",
+      "x": 880,
+      "y": 0,
+      "width": 720,
+      "height": 550,
+      "settings": {
+        "projectTitle": "LUNE · 15s / 三镜头分镜",
+        "mode": "video",
+        "viewMode": "cards",
+        "shots": [
+          {
+            "id": "1",
+            "sceneIndex": 1,
+            "shotNumber": 1,
+            "title": "01 林间初醒",
+            "prompt": "镜头 01｜林间初醒。以森林远景和苔石上的香水为首帧，镜头缓慢向产品推进，薄雾轻轻流动，暖金色晨光穿过树木。保持瓶身形状和标签一致，单镜头，不切换场景。",
+            "description": "01 林间初醒",
+            "image_url": "asset://assets/opening.png",
+            "image_filename": "01 林间初醒 · 示意首帧.png",
+            "status": "idle",
+            "duration": "5s",
+            "ratio": "16:9",
+            "resolution": "720P",
+            "model": "",
+            "useFirstLastFrame": false,
+            "outputEnabled": false,
+            "selectedImageIndex": -1,
+            "referenceImages": [],
+            "output_images": [],
+            "video_url": ""
+          },
+          {
+            "id": "2",
+            "sceneIndex": 2,
+            "shotNumber": 2,
+            "title": "02 细节呼吸",
+            "prompt": "镜头 02｜细节呼吸。以瓶身底部与露珠的微距图为首帧，镜头极缓慢横移，玻璃折射与琥珀色高光轻微变化，蕨叶有细小自然摆动。保持真实材质和浅景深。",
+            "description": "02 细节呼吸",
+            "image_url": "asset://assets/detail.png",
+            "image_filename": "02 细节呼吸 · 示意首帧.png",
+            "status": "idle",
+            "duration": "5s",
+            "ratio": "16:9",
+            "resolution": "720P",
+            "model": "",
+            "useFirstLastFrame": false,
+            "outputEnabled": false,
+            "selectedImageIndex": -1,
+            "referenceImages": [],
+            "output_images": [],
+            "video_url": ""
+          },
+          {
+            "id": "3",
+            "sceneIndex": 3,
+            "shotNumber": 3,
+            "title": "03 留香定帧",
+            "prompt": "镜头 03｜留香定帧。以香水产品中景为首帧，镜头缓慢推近后停稳，薄雾从背景经过，标签清晰可读。最后 1 秒稳定定格，不添加新文字或改变瓶身。",
+            "description": "03 留香定帧",
+            "image_url": "asset://assets/hero.png",
+            "image_filename": "03 留香定帧 · 示意首帧.png",
+            "status": "idle",
+            "duration": "5s",
+            "ratio": "16:9",
+            "resolution": "720P",
+            "model": "",
+            "useFirstLastFrame": false,
+            "outputEnabled": false,
+            "selectedImageIndex": -1,
+            "referenceImages": [],
+            "output_images": [],
+            "video_url": ""
+          }
+        ],
+        "script": "三幕脚本\n01  苏醒：晨光穿过森林，香水在苔石上出现。\n02  呼吸：露珠与玻璃折射，放大材质和气味联想。\n03  留香：镜头定格瓶身，留下安静的品牌余韵。",
+        "scriptExpanded": false,
+        "tableMarkdown": "",
+        "tableData": null,
+        "tableMarkdownCollapsed": true,
+        "llmWorkspaceHeight": 160
+      }
+    },
+    {
+      "id": "demo-video",
+      "type": "gen-video",
+      "x": 1660,
+      "y": 0,
+      "width": 420,
+      "height": 550,
+      "settings": {
+        "model": "",
+        "duration": "5s",
+        "ratio": "16:9",
+        "resolution": "720P",
+        "videoPrompt": "视频生成设置｜建议 Seedance 2.5 / MiniMax H3\n每个镜头 5 秒，16:9，保持产品与光线连续。\n镜头运动克制，薄雾自然流动。\n在分镜卡片中逐镜执行，或配置模型后批量生成。\n\n当前为示例工作流，视频尚未生成。"
+      }
+    },
+    {
+      "id": "demo-frame-1",
+      "type": "preview",
+      "x": 380,
+      "y": 645,
+      "width": 380,
+      "height": 255,
+      "content": "asset://assets/opening.png",
+      "previewType": "image",
+      "previewFilename": "01 · 林间初醒 / 静帧示意",
+      "settings": {}
+    },
+    {
+      "id": "demo-frame-2",
+      "type": "preview",
+      "x": 820,
+      "y": 645,
+      "width": 380,
+      "height": 255,
+      "content": "asset://assets/detail.png",
+      "previewType": "image",
+      "previewFilename": "02 · 细节呼吸 / 静帧示意",
+      "settings": {}
+    },
+    {
+      "id": "demo-frame-3",
+      "type": "preview",
+      "x": 1260,
+      "y": 645,
+      "width": 380,
+      "height": 255,
+      "content": "asset://assets/hero.png",
+      "previewType": "image",
+      "previewFilename": "03 · 留香定帧 / 静帧示意",
+      "settings": {}
+    },
+    {
+      "id": "demo-delivery",
+      "type": "text-node",
+      "x": 1700,
+      "y": 625,
+      "width": 380,
+      "height": 275,
+      "settings": {
+        "text": "成片目标 / 待生成\n\n00–05 秒：森林开场\n05–10 秒：材质微距\n10–15 秒：产品定帧\n\n下方三张预览是 imagegen 制作的示意静帧，供查看视觉方向；不是视频模型运行结果。\n没有创建生成任务或平台费用记录。"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "demo-edge-1",
+      "from": "demo-brief",
+      "to": "demo-script"
+    },
+    {
+      "id": "demo-edge-2",
+      "from": "demo-brief",
+      "to": "demo-image"
+    },
+    {
+      "id": "demo-edge-3",
+      "from": "demo-product",
+      "to": "demo-image"
+    },
+    {
+      "id": "demo-edge-4",
+      "from": "demo-style",
+      "to": "demo-image"
+    },
+    {
+      "id": "demo-edge-5",
+      "from": "demo-image",
+      "to": "demo-storyboard"
+    },
+    {
+      "id": "demo-edge-6",
+      "from": "demo-script",
+      "to": "demo-storyboard"
+    },
+    {
+      "id": "demo-edge-7",
+      "from": "demo-storyboard",
+      "to": "demo-video"
+    },
+    {
+      "id": "demo-edge-8",
+      "from": "demo-storyboard",
+      "to": "demo-frame-1"
+    },
+    {
+      "id": "demo-edge-9",
+      "from": "demo-storyboard",
+      "to": "demo-frame-2"
+    },
+    {
+      "id": "demo-edge-10",
+      "from": "demo-storyboard",
+      "to": "demo-frame-3"
+    },
+    {
+      "id": "demo-edge-11",
+      "from": "demo-video",
+      "to": "demo-delivery"
+    }
+  ],
+  "history": [],
+  "assetManifest": {},
+  "view": {
+    "x": 95,
+    "y": 90,
+    "zoom": 0.6
+  },
+  "demo": {
+    "description": "Static visual demo. Generation nodes have not been executed.",
+    "image_source": "Built-in image_gen",
+    "duration_seconds": 15
+  }
+}

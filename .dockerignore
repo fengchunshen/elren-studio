@@ -1,0 +1,53 @@
+# ============================================
+# Docker Build 忽略文件
+# ============================================
+
+# 依赖目录 (构建时重新安装)
+node_modules/
+**/.venv/
+**/.cache/
+**/.env*
+server/data/
+server/tests/
+
+# 构建产物 (构建时重新生成)
+dist/
+
+# Git 相关
+.git/
+.gitignore
+.githooks/
+
+# 文档和备份
+*.md
+!README.md
+backups/
+docs/
+
+# 压缩包
+**/*.7z
+**/*.zip
+**/*.rar
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# 日志和临时文件
+.waylog/
+*.log
+*.tmp
+
+# IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试和开发文件
+scripts/
+codex.md

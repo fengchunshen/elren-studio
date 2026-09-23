@@ -1,0 +1,568 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Generation feedback stays inside the media area without intercepting the canvas. */
+.generation-status {
+    pointer-events: none;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: calc(100% - 24px);
+    color: hsl(var(--foreground));
+    font-size: 11px;
+    line-height: 16px;
+    animation: generation-status-enter 180ms ease-out both;
+}
+.generation-status--overlay {
+    top: 12px;
+    left: 12px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    border: 1px solid hsl(var(--foreground) / 0.1);
+    border-radius: 16px;
+    background: hsl(var(--popover) / 0.92);
+    backdrop-filter: blur(12px);
+}
+.generation-status__label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.generation-status__spinner {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    border: 1.5px solid hsl(var(--foreground) / 0.18);
+    border-top-color: hsl(var(--foreground) / 0.85);
+    border-radius: 50%;
+    animation: generation-status-spin 1.1s linear infinite;
+}
+.generation-status__elapsed {
+    padding-left: 10px;
+    border-left: 1px solid hsl(var(--foreground) / 0.16);
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+}
+.generation-status--empty { flex-direction: column; gap: 8px; }
+.generation-status--empty .generation-status__label { flex-direction: column; gap: 14px; }
+.generation-status--empty .generation-status__spinner { width: 26px; height: 26px; border-width: 2px; }
+.generation-status--empty .generation-status__elapsed { border: 0; padding: 0; }
+.generation-status__detail { flex-basis: 100%; max-width: 240px; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+.generation-status--empty .generation-status__detail { text-align: center; }
+@keyframes generation-status-spin { to { transform: rotate(360deg); } }
+@keyframes generation-status-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .generation-status, .generation-status__spinner { animation: none; }
+}
+
+@layer base {
+    :root, .theme-light {
+        color-scheme: light;
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 240 5.9% 10%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
+        --destructive: 0 72.2% 50.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 240 5.9% 10%;
+        --radius: 0.625rem;
+        --scrollbar-thumb: 240 5% 68%;
+        --scrollbar-thumb-hover: 240 4% 50%;
+        --canvas-surface: 240 5% 96%;
+        --canvas-dot: 240 4% 50%;
+        --canvas-dot-opacity: 0.28;
+        --canvas-node-selected: 240 3% 45%;
+        --canvas-node-adjacent: 240 3% 76%;
+        --canvas-comment-accent: 193 77% 47%;
+        --canvas-comment-foreground: 0 0% 100%;
+    }
+
+    .dark, .theme-dark {
+        color-scheme: dark;
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 240 6% 7%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 6% 10%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 240 5.9% 10%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 40%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 23%;
+        --ring: 240 4.9% 83.9%;
+        --scrollbar-thumb: 240 5% 34%;
+        --scrollbar-thumb-hover: 240 4% 46%;
+        --canvas-surface: 0 0% 1%;
+        --canvas-dot: 0 0% 18%;
+        --canvas-dot-opacity: 0.75;
+        --canvas-node-selected: 0 0% 48%;
+        --canvas-node-adjacent: 0 0% 24%;
+    }
+
+    .theme-solarized {
+        color-scheme: light;
+        --background: 44 87% 94%;
+        --foreground: 192 14% 30%;
+        --card: 46 42% 88%;
+        --card-foreground: 192 14% 30%;
+        --popover: 46 42% 88%;
+        --popover-foreground: 192 14% 30%;
+        --primary: 192 14% 30%;
+        --primary-foreground: 44 87% 94%;
+        --secondary: 46 30% 82%;
+        --secondary-foreground: 192 14% 30%;
+        --muted: 46 30% 86%;
+        --muted-foreground: 194 14% 40%;
+        --accent: 46 30% 82%;
+        --accent-foreground: 192 14% 30%;
+        --border: 47 30% 77%;
+        --input: 47 30% 70%;
+        --ring: 194 14% 40%;
+        --scrollbar-thumb: 194 10% 58%;
+        --scrollbar-thumb-hover: 194 14% 40%;
+        --canvas-surface: 44 87% 94%;
+        --canvas-dot: 194 14% 40%;
+        --canvas-dot-opacity: 0.25;
+        --canvas-node-selected: 194 14% 40%;
+        --canvas-node-adjacent: 47 20% 66%;
+    }
+
+    * {
+        @apply border-border;
+        --scrollbar-thumb-current: transparent;
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb-current) transparent;
+    }
+    /* The element-level variable also invalidates native scrollbar painting on hover. */
+    *:hover { --scrollbar-thumb-current: hsl(var(--scrollbar-thumb)); }
+    body { @apply bg-background text-foreground; }
+
+    /* Match Scroll Area on native textareas, menus, tables and canvas scrollers.
+       Chromium's standard scrollbar properties override its pseudo-elements,
+       so use only the pseudo-elements there to keep the track fully transparent. */
+    @supports selector(::-webkit-scrollbar) {
+        * {
+            scrollbar-width: auto;
+            scrollbar-color: auto;
+        }
+        *::-webkit-scrollbar { width: 10px; height: 10px; }
+        *::-webkit-scrollbar-track,
+        *::-webkit-scrollbar-track-piece,
+        *::-webkit-scrollbar-corner {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+        }
+        *::-webkit-scrollbar-thumb {
+            min-height: 24px;
+            min-width: 24px;
+            border: 2px solid transparent;
+            border-radius: 999px;
+            background: var(--scrollbar-thumb-current);
+            background-clip: padding-box;
+        }
+        *::-webkit-scrollbar-thumb:hover,
+        *::-webkit-scrollbar-thumb:active {
+            background-color: hsl(var(--scrollbar-thumb-hover));
+        }
+        *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+    }
+}
+
+/* Canvas visuals stay separate from shared form-control and keyboard-focus styles. */
+[data-node-add-control] {
+    position: absolute;
+    top: 50%;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    width: 48px;
+    height: 44px;
+    transform: translateY(-50%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+[data-node-add-control] > button { pointer-events: auto; }
+[data-node-add-control="left"] { right: 100%; justify-content: flex-start; padding-left: 6px; }
+[data-node-add-control="right"] { left: 100%; justify-content: flex-end; padding-right: 6px; }
+.node-wrapper:hover > [data-node-add-control],
+.node-wrapper[data-selected="true"] > [data-node-add-control],
+[data-node-add-control][data-menu-open="true"],
+[data-node-add-control]:focus-within { opacity: 1; visibility: visible; }
+/* Keep existing edge handles available for dragging connections, without a third plus. */
+.node-wrapper[data-reference-actions="true"] > .connector {
+    width: 8px !important;
+    height: 8px !important;
+    right: -4px !important;
+    opacity: 0.5;
+}
+.node-wrapper[data-reference-actions="true"] > .connector > svg { display: none; }
+/* Keep small visual ports easy to grab without covering the adjacent add button. */
+.node-wrapper > .connector::before,
+.node-wrapper > .input-point::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+}
+
+.canvas-grid[data-node-overlays-suspended="true"] [data-node-toolbar] {
+    visibility: hidden;
+    pointer-events: none;
+}
+.generation-inspector {
+    --inspector-enter-x: 0px;
+    --inspector-enter-y: -10px;
+}
+.generation-inspector[data-side="top"] { --inspector-enter-y: 10px; }
+.generation-inspector[data-side="left"] { --inspector-enter-x: 10px; --inspector-enter-y: 0px; }
+.generation-inspector[data-side="right"] { --inspector-enter-x: -10px; --inspector-enter-y: 0px; }
+.generation-inspector[data-positioned="true"] {
+    animation: generation-inspector-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes generation-inspector-in {
+    /* Translate only: scaling would distort the height used by the positioning observer. */
+    from { opacity: 0; transform: translate(var(--inspector-enter-x), var(--inspector-enter-y)); }
+    to { opacity: 1; transform: translate(0, 0); }
+}
+
+.generation-floating-surface {
+    --generation-enter-x: 0px;
+    --generation-enter-y: 0px;
+    transform-origin: var(--radix-popover-content-transform-origin, var(--radix-dropdown-menu-content-transform-origin, center));
+}
+.generation-floating-surface[data-side="top"] { --generation-enter-y: 6px; }
+.generation-floating-surface[data-side="bottom"] { --generation-enter-y: -6px; }
+.generation-floating-surface[data-side="left"] { --generation-enter-x: 6px; }
+.generation-floating-surface[data-side="right"] { --generation-enter-x: -6px; }
+.generation-floating-surface[data-slot][data-state="open"] {
+    animation: generation-surface-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.generation-floating-surface[data-slot][data-state="closed"] {
+    animation: generation-surface-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
+    pointer-events: none;
+}
+@keyframes generation-surface-in {
+    from { opacity: 0; transform: translate(var(--generation-enter-x), var(--generation-enter-y)) scale(0.985); }
+    to { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+@keyframes generation-surface-out {
+    from { opacity: 1; transform: translate(0, 0) scale(1); }
+    to { opacity: 0; transform: translate(var(--generation-enter-x), var(--generation-enter-y)) scale(0.985); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .generation-inspector[data-positioned="true"] { animation: none; }
+    .generation-floating-surface[data-slot][data-state] { animation: none; }
+}
+
+.canvas-grid {
+    background-color: hsl(var(--canvas-surface));
+    background-image: radial-gradient(circle, hsl(var(--canvas-dot) / var(--canvas-dot-opacity)) 0.5px, transparent 0.85px);
+}
+
+.canvas-node {
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.12);
+    transition: border-color 120ms ease;
+}
+.canvas-node.node-content-first {
+    border-radius: 18px;
+    box-shadow: none;
+}
+.canvas-node > .canvas-node-body {
+    border-radius: inherit;
+}
+.node-content-first > .resize-handle {
+    opacity: 0;
+}
+.node-content-first:focus-within > .resize-handle {
+    opacity: 1;
+}
+.rich-text-content .tiptap { min-height: 100%; outline: none; line-height: 1.65; }
+/* Only the actual text area edits; the remaining card surface can drag the node. */
+.rich-text-content[data-text-node-body] .tiptap { min-height: 1.65em; }
+.rich-text-content .tiptap p { margin: 0 0 0.5em; }
+.rich-text-content .tiptap h1 { font-size: 1.5em; font-weight: 600; margin: 0.65em 0 0.4em; }
+.rich-text-content .tiptap h2 { font-size: 1.25em; font-weight: 600; margin: 0.65em 0 0.4em; }
+.rich-text-content .tiptap h3 { font-size: 1.1em; font-weight: 600; margin: 0.65em 0 0.4em; }
+.rich-text-content .tiptap ul { list-style: disc; padding-left: 1.4em; }
+.rich-text-content .tiptap ol { list-style: decimal; padding-left: 1.4em; }
+.rich-text-content .tiptap hr { margin: 1em 0; border-color: hsl(var(--border)); }
+
+.canvas-node[data-adjacent="true"] {
+    border-color: hsl(var(--canvas-node-adjacent));
+}
+
+.canvas-node[data-selected="true"] {
+    border-color: hsl(var(--canvas-node-selected));
+}
+
+/* Paint the state border above content without clipping external node controls. */
+.canvas-node[data-selected="true"]::after,
+.canvas-node[data-connect-target="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 20;
+    border-radius: inherit;
+    border: var(--canvas-selection-width, 1px) solid hsl(var(--canvas-node-selected));
+    pointer-events: none;
+}
+
+.canvas-node[data-connect-target="true"]::after {
+    border-style: dashed;
+    border-color: hsl(var(--foreground) / 0.7);
+}
+
+.canvas-selection-box {
+    border: 1px solid hsl(var(--canvas-node-selected));
+    background-color: hsl(var(--canvas-node-selected) / 0.05);
+}
+
+#canvas-bg[data-pan-ready="true"],
+#canvas-bg[data-pan-ready="true"] .node-wrapper {
+    cursor: grab !important;
+}
+
+#canvas-bg[data-panning="true"],
+#canvas-bg[data-panning="true"] .node-wrapper {
+    cursor: grabbing !important;
+}
+
+.canvas-comment-toggle[data-active="true"] {
+    background-color: hsl(var(--canvas-comment-accent));
+    color: hsl(var(--canvas-comment-foreground));
+}
+
+#canvas-bg[data-comment-mode="true"],
+#canvas-bg[data-comment-mode="true"] .node-wrapper,
+#canvas-bg[data-comment-mode="true"] .node-wrapper * {
+    cursor: var(--canvas-comment-cursor) !important;
+}
+
+@media (max-height: 700px) {
+    .workspace-sidebar { top: 16px; transform: none; }
+}
+
+        body { margin: 0; padding: 0; }
+        /* Prevent selection during drag - applied to canvas only mostly */
+        .select-none { user-select: none; }
+        /* Allow selection in chat */
+        .select-text { user-select: text; }
+        
+        /* Loader animation fallback */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        /* Artistic Minimalist Loader - V2 with Credits */
+        .art-loader-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #09090b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* 垂直居中 */
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #e4e4e7;
+        }
+
+        /* 将中间动画打包，确保它稍微偏上一点，给底部留空间 */
+        .art-center-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateY(-20px); /* 视觉微调 */
+        }
+
+        .art-visual {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 30px;
+        }
+
+        .art-ring-outer {
+            position: absolute; inset: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: art-breathe 4s ease-in-out infinite;
+        }
+
+        .art-ring-inner {
+            position: absolute; inset: 0;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            border-top-color: #fff;
+            border-left-color: rgba(255,255,255,0.3);
+            opacity: 0.8;
+            animation: art-spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .art-dot {
+            position: absolute; top: 50%; left: 50%;
+            width: 4px; height: 4px;
+            background-color: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .art-title {
+            font-size: 12px; font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            opacity: 0.9; margin-bottom: 8px;
+        }
+
+        .art-status {
+            font-family: 'Courier New', monospace;
+            font-size: 10px; color: #71717a;
+            letter-spacing: 0.1em;
+            animation: art-pulse 2s ease-in-out infinite;
+        }
+
+        /* --- 底部署名区域样式 --- */
+        .art-footer {
+            position: absolute;
+            bottom: 40px; /* 距离底部 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            opacity: 0; /* 初始隐藏 */
+            animation: art-fade-up 1s ease-out 0.5s forwards; /* 延迟淡入 */
+        }
+
+        .footer-author {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .footer-author .label {
+            font-size: 9px;
+            color: #52525b;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .footer-author .name {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5em; /* 名字字间距拉大，极显逼格 */
+            color: #fff;
+            text-indent: 0.5em; /* 修正字间距带来的视觉中心偏移 */
+        }
+
+        .footer-divider {
+            width: 20px;
+            height: 1px;
+            background-color: #27272a;
+        }
+
+        .footer-thanks {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .footer-thanks .label {
+            font-size: 8px;
+            color: #3f3f46;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .footer-thanks .content {
+            font-size: 10px;
+            color: #71717a;
+            font-family: 'Courier New', monospace; /* 致谢使用代码字体 */
+        }
+
+        .footer-thanks .highlight {
+            color: #a1a1aa;
+            font-weight: 600;
+        }
+
+        /* 动画定义 */
+        @keyframes art-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes art-breathe { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.2; } }
+        @keyframes art-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+        @keyframes art-fade-up { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+/* Utility: Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* V3.7.23: Chat bubble markdown rendering - remove extra margins */
+.markdown-body {
+    line-height: 1.5;
+}
+.markdown-body p {
+    margin: 0;
+}
+.markdown-body p + p {
+    margin-top: 0.5em;
+}
+.markdown-body ul, .markdown-body ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+.markdown-body pre {
+    margin: 0.5em 0;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+}
+.markdown-body code {
+    font-size: 0.875em;
+}
+
+/* Storyboard uses the same media-first surfaces as canvas generation nodes. */
+.storyboard-cards { container-type: inline-size; min-width: 0; }
+.storyboard-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 24px 16px; }
+.storyboard-filmstrip { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; }
+.storyboard-filmstrip .storyboard-shot { width: 144px; flex: 0 0 144px; }
+.storyboard-shot { min-width: 0; text-align: left; border: 0; background: transparent; color: hsl(var(--foreground)); border-radius: 12px; outline-offset: 4px; }
+.storyboard-shot__image { position: relative; overflow: hidden; height: 132px; border-radius: 12px; background: hsl(var(--muted) / .35); border: 1px solid hsl(var(--border) / .6); }
+.storyboard-shot[aria-pressed="true"] .storyboard-shot__image { border-color: hsl(var(--foreground) / .7); }
+.storyboard-shot:hover .storyboard-shot__image { border-color: hsl(var(--foreground) / .4); }
+.storyboard-filmstrip .storyboard-shot__image { height: 88px; }
+.storyboard-shot__number, .storyboard-shot__duration { position: absolute; top: 7px; background: hsl(var(--background) / .8); padding: 2px 5px; border-radius: 5px; font-size: 10px; font-variant-numeric: tabular-nums; }
+.storyboard-shot__number { left: 7px; } .storyboard-shot__duration { right: 7px; }
+.storyboard-shot-editor__body { display: grid; grid-template-columns: minmax(180px, .85fr) minmax(280px, 1.3fr); gap: 20px; }
+.storyboard-stage { height: 280px; }
+.storyboard-reference { width: 64px; height: 64px; flex: 0 0 64px; }
+@container (max-width: 600px) { .storyboard-shot-editor__body { grid-template-columns: 1fr; } .storyboard-stage { height: 220px; } .storyboard-overview { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }

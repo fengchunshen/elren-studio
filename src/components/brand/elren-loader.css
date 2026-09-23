@@ -1,0 +1,20 @@
+.elren-loading-content { display: contents; }
+.elren-loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    background: #000;
+    color: hsl(var(--foreground, 0 0% 98%));
+    opacity: 1;
+    transition: opacity 180ms ease-out;
+}
+.elren-loading-screen[data-state="exiting"] { opacity: 0; pointer-events: none; }
+.elren-loader { --elren-mark-size: 64px; display: grid; place-items: center; padding: 24px; }
+.elren-loader-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) {
+    .elren-loading-screen { transition: none; }
+}

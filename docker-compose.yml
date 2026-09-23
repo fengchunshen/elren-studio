@@ -1,0 +1,60 @@
+# ============================================
+# Elren Studio Docker Compose 配置
+# ============================================
+# 使用方法:
+#   启动: docker-compose up -d
+#   停止: docker-compose down
+#   查看日志: docker-compose logs -f
+#   重建: docker-compose up -d --build
+# ============================================
+
+version: '3.8'
+
+services:
+  elren:
+    build:
+      context: .
+      dockerfile: docker/localserver.Dockerfile
+    container_name: elren-localserver
+    ports:
+      - "9527:9527"
+    volumes:
+      # 数据持久化
+      - elren_data:/app/data
+      # 可选: 挂载本地下载目录
+      # - ~/Downloads/ElrenStudio:/app/downloads
+    environment:
+      # 功能开关
+      - ELREN_ENABLE_FILE_SERVER=true
+      - ELREN_ENABLE_PROXY=true
+      - ELREN_ENABLE_COMFY=false
+      - ELREN_ENABLE_LOG=true
+    restart: unless-stopped
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9527/ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    container_name: elren-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - elren
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  elren_data:
+    driver: local

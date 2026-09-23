@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1749" height="226" viewBox="0 0 1749 226" fill="currentColor">
+  <title>ELREN</title>
+  <g data-part="wordmark">
+    <path data-letter="e-first" d="M0 0H244V31H0ZM0 93H193V125H34V195H244V226H0Z"/>
+    <path data-letter="l" d="M357 0H393V195H596V226H357Z"/>
+    <path data-letter="r" d="M703 0H861C913 0 949 31 949 73C949 111 921 142 861 146L956 226H904L809 147H739V226H703V115H857C890 115 912 98 912 74C912 50 893 31 860 31H703Z"/>
+    <path data-letter="e-second" d="M1085 0H1327V31H1085ZM1085 93H1274V125H1119V195H1327V226H1085Z"/>
+    <path data-letter="n" d="M1447 226V0H1479L1715 191V0H1749V226H1702L1481 42V226Z"/>
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+# Development override: keep the existing database and publish it only on loopback.
+# Application processes run directly from source via dev.py.
+services:
+  db:
+    ports:
+      - "127.0.0.1:${ELREN_DEV_DB_PORT:-55432}:5432"

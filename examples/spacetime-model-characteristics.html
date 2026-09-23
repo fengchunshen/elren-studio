@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN" class="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>模型特点展示预览 · Elren Studio</title></head><body><div id="preview"></div><script type="module">
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import '/src/index.css';
+import { GenerationModelPicker } from '/src/components/editor/generation-model-picker.jsx';
+import { editorModels, setPlatformContext } from '/src/services/platformContext.js';
+const source = [{"id": "flare-preview", "name": "GPT Image 2.5 Flare", "operation": "image.edit", "tags": ["快速生成", "自动规格"], "description": "适合日常创作，快速生成高质量图片。", "parameters": {"size": {"type": "string", "enum": ["auto"], "default": "auto", "hidden": true}, "quality": {"type": "string", "enum": ["auto"], "default": "auto", "hidden": true}, "n": {"type": "integer", "enum": [1], "default": 1}}, "inputs": {"types": ["image"], "max": 4}}, {"id": "sunburst-preview", "name": "GPT Image 2.5 Sunburst", "operation": "image.edit", "tags": ["精细编辑", "自动规格"], "description": "适合参考图精修，注重修改准确性。", "parameters": {"size": {"type": "string", "enum": ["auto"], "default": "auto", "hidden": true}, "quality": {"type": "string", "enum": ["auto"], "default": "auto", "hidden": true}, "n": {"type": "integer", "enum": [1], "default": 1}}, "inputs": {"types": ["image"], "max": 4}}];
+setPlatformContext({models:source});
+const models=editorModels();
+const h=React.createElement;
+function Preview(){
+ const [value,setValue]=React.useState(models[0].id);
+ const current=source.find(model=>model.id===value);
+ return h('main',{className:'min-h-screen bg-background text-foreground p-8'},
+  h('div',{className:'mx-auto max-w-xl space-y-6'},
+   h('div',null,h('h1',{className:'text-xl font-medium'},'模型特点展示预览'),h('p',{className:'mt-2 text-sm text-muted-foreground'},'仅预览模型选择和用途说明，不会执行生成。')),
+   h('section',{className:'rounded-2xl border border-border bg-card p-4'},h(GenerationModelPicker,{models,value,onChange:setValue})),
+   h('p',{role:'status',className:'text-sm text-muted-foreground'},current.description)
+  ));
+}
+createRoot(document.getElementById('preview')).render(h(Preview));
+</script></body></html>

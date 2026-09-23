@@ -1,0 +1,8 @@
+# Elren Local Server Python Dependencies
+# ========================================
+
+# 图像处理 (PNG转JPG功能)
+Pillow>=9.0.0
+
+# WebSocket 客户端 (ComfyUI 中间件)
+websocket-client>=1.0.0

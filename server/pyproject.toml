@@ -1,0 +1,23 @@
+[project]
+name = "elren-server"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "sqlalchemy>=2.0,<3",
+  "alembic>=1.13,<2",
+  "psycopg[binary]>=3.2,<4",
+  "httpx[http2]>=0.27,<1",
+  "argon2-cffi>=23,<26",
+  "python-multipart>=0.0.20,<1",
+  "pillow>=11,<13",
+  "cryptography>=44,<47",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
