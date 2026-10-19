@@ -1,6 +1,21 @@
-# Development override: keep the existing database and publish it only on loopback.
-# Application processes run directly from source via dev.py.
+# Local development infrastructure only. Application processes run from source.
+# Keep the platform project and volume names so existing development data is reused.
+name: elren-platform
 services:
   db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: elren
+      POSTGRES_USER: elren
+      POSTGRES_PASSWORD: ${ELREN_DB_PASSWORD:?Set ELREN_DB_PASSWORD}
     ports:
       - "127.0.0.1:${ELREN_DEV_DB_PORT:-55432}:5432"
+    volumes:
+      - platform_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U elren"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  platform_db:

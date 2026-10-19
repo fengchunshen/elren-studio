@@ -50,4 +50,7 @@ __pycache__/
 
 # 测试和开发文件
 scripts/
+!scripts/
+scripts/*
+!scripts/elren-boot-splash.mjs
 codex.md

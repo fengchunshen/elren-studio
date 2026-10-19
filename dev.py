@@ -59,7 +59,6 @@ def start_all(ports, environment):
     stopping = threading.Event()
     finished = threading.Event()
     socket_path = directory / "control.sock"
-    database_managed = False
     old_handlers = {}
     with (directory / "run.lock").open("a+") as lock:
         try:
@@ -112,14 +111,11 @@ def start_all(ports, environment):
         listener = threading.Thread(target=listen, daemon=True)
         listener.start()
         try:
-            ensure_docker(environment)
             setup(ports, environment, announce=False)
             if stopping.is_set():
-                database_managed = True
                 return 0
             check_port(ports["WEB"])
             check_port(ports["API"])
-            database_managed = True
             for name in ("api", "worker", "web"):
                 process = subprocess.Popen([sys.executable, "-u", str(ROOT / "dev.py"), name],
                                            cwd=ROOT, env={**environment, "ELREN_DEV_SUPERVISOR_PID": str(os.getpid())}, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
@@ -136,7 +132,7 @@ def start_all(ports, environment):
                 if not ready:
                     ready = service_ready(f"http://127.0.0.1:{ports['API']}/api/v1/health") and service_ready(f"http://localhost:{ports['WEB']}/api/v1/health")
                     if ready:
-                        print(f"\n开发环境已启动：\n  前端：http://localhost:{ports['WEB']}\n  后端：http://127.0.0.1:{ports['API']}/docs\n  日志：{directory}\n热更新已开启。按 Ctrl+C 或执行 ./stop-dev.sh 停止全部服务。\n", flush=True)
+                        print(f"\n开发环境已启动：\n  前端：http://localhost:{ports['WEB']}\n  后端：http://127.0.0.1:{ports['API']}/docs\n  日志：{directory}\n热更新已开启。按 Ctrl+C 或执行 ./stop-dev.sh 停止应用进程；数据库保持运行。\n", flush=True)
                     elif time.monotonic() > deadline:
                         raise ValueError(f"服务未能就绪，请检查 {directory} 中的日志")
             return 0
@@ -145,11 +141,6 @@ def start_all(ports, environment):
             signal_children(signal.SIGTERM)
             while any(process.poll() is None for process in children):
                 time.sleep(0.2)
-            if database_managed:
-                try:
-                    run(compose(True) + ["stop", "db"], environment)
-                except subprocess.CalledProcessError:
-                    print("数据库停止失败，请检查 Docker 状态；数据未删除。", flush=True)
             finished.set()
             listener.join(timeout=2)
             control.close()
@@ -175,7 +166,7 @@ def stop_all():
         while True:
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                print("前端、API、Worker 和数据库已停止，数据保留。")
+                print("前端、API 和 Worker 已停止；数据库保持运行，数据保留。")
                 return 0
             except BlockingIOError:
                 if time.monotonic() >= deadline:
@@ -239,12 +230,14 @@ def configuration():
     return ports, environment
 
 
-def compose(override=False):
-    command = ["docker", "compose", "--env-file", str(SERVER / ".env.platform"),
-               "-f", str(ROOT / "compose.platform.yaml")]
-    if override:
-        command += ["-f", str(ROOT / "compose.dev.yaml")]
-    return command
+def compose():
+    return ["docker", "compose", "--env-file", str(SERVER / ".env.platform"),
+            "-f", str(ROOT / "compose.dev.yaml")]
+
+
+def platform_compose():
+    return ["docker", "compose", "--env-file", str(SERVER / ".env.platform"),
+            "-f", str(ROOT / "compose.platform.yaml")]
 
 
 def run(command, environment, cwd=ROOT, capture=False):
@@ -267,7 +260,7 @@ def copy_assets(environment):
     destination.mkdir(parents=True, exist_ok=True)
     if marker.exists():
         return
-    container = run(compose() + ["ps", "-aq", "api"], environment, capture=True).stdout.strip()
+    container = run(platform_compose() + ["ps", "-aq", "api"], environment, capture=True).stdout.strip()
     if not container:
         return
     with tempfile.TemporaryDirectory(prefix="elren-dev-assets-") as directory:
@@ -294,17 +287,21 @@ def require_environment():
 
 
 def setup(ports, environment, announce=True):
+    ensure_docker(environment)
     run(["docker", "info", "--format", "Docker engine: {{.ServerVersion}}"], environment)
-    print("停止本项目的镜像应用服务，保留数据库与持久化卷。", flush=True)
-    run(compose() + ["stop", "web", "api", "worker"], environment)
+    running = run(platform_compose() + ["ps", "--status", "running", "--services", "web", "api", "worker"],
+                  environment, capture=True).stdout.strip().splitlines()
+    if running:
+        raise ValueError("镜像应用容器仍在运行：" + ", ".join(running) +
+                         "。请先手动切换运行方式；本机调试不会自动停止这些容器。")
     copy_assets(environment)
     # A mapped database from an earlier setup can already own the requested port.
-    mapping = subprocess.run(compose(True) + ["port", "db", "5432"], cwd=ROOT, env=environment,
+    mapping = subprocess.run(compose() + ["port", "db", "5432"], cwd=ROOT, env=environment,
                              text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     mapped = mapping.stdout.strip() if mapping.returncode == 0 else ""
     if mapped not in {f"127.0.0.1:{ports['DB']}", f"0.0.0.0:{ports['DB']}"}:
         check_port(ports["DB"])
-    run(compose(True) + ["up", "-d", "--no-deps", "--no-build", "--wait", "--wait-timeout", "60", "db"], environment)
+    run(compose() + ["up", "-d", "--no-deps", "--no-build", "--wait", "--wait-timeout", "60", "db"], environment)
     run(["uv", "sync", "--project", SERVER, "--frozen", "--cache-dir", SERVER / ".cache/uv"], environment)
     if not (ROOT / "node_modules/.bin/vite").exists():
         run(["npm", "ci"], environment)

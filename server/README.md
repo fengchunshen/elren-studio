@@ -41,17 +41,17 @@
 ./start-dev.sh
 ```
 
-脚本会检查 Docker 引擎，未运行时尝试启动 Docker Desktop，准备数据库和依赖，再同时启动前端、API 和 Worker。访问 `http://localhost:8081`。三个进程的日志在同一个终端显示，并分别写入 `server/data/dev/web.log`、`api.log` 和 `worker.log`。该命令保持前台运行，重复执行不会启动第二套进程。
+脚本会检查 Docker 引擎，未运行时尝试启动 Docker Desktop。开发用 Compose 文件只定义 PostgreSQL；前端、API 和 Worker 直接从本机源码运行。脚本准备依赖、执行数据库迁移后启动应用进程。访问 `http://localhost:8081`。三个进程的日志在同一个终端显示，并分别写入 `server/data/dev/web.log`、`api.log` 和 `worker.log`。该命令保持前台运行，重复执行不会启动第二套进程。
 
-按 `Ctrl+C` 即可停止本次启动的进程和数据库；也可在另一个终端执行：
+按 `Ctrl+C` 即可停止本次启动的应用进程；也可在另一个终端执行：
 
 ```bash
 ./stop-dev.sh
 ```
 
-重复运行启动脚本会提示已有实例，不会重复启动。API／前端保留父进程监测，Worker 也会在一键管理进程异常退出后正常结束当前工作步骤并退出，避免留下占用 8000 的孤立服务。API 端口冲突会在变更 Docker 服务前报出；脚本不会自动结束未知的占用进程。
+重复运行启动脚本会提示已有实例，不会重复启动。API／前端保留父进程监测，Worker 也会在一键管理进程异常退出后正常结束当前工作步骤并退出，避免留下占用 8000 的孤立服务。API 端口冲突会在变更 Docker 服务前报出；如果旧的平台镜像应用容器正在运行，脚本也会报出冲突，不会自动停止它们。
 
-停止不删除数据库卷或素材。等价 npm 命令为 `npm run dev:all` 和 `npm run dev:stop`。如果某个应用进程异常退出，脚本会停止本次启动的其他进程，并提示检查日志。
+退出后数据库保持运行，不删除数据库卷或素材。等价 npm 命令为 `npm run dev:all` 和 `npm run dev:stop`。如果某个应用进程异常退出，脚本会停止本次启动的其他应用进程，并提示检查日志。需要单独停止开发数据库时执行 `docker compose --env-file server/.env.platform -f compose.dev.yaml stop db`。
 
 ### 分终端运行（可选）
 
@@ -61,7 +61,7 @@
 npm run dev:setup
 ```
 
-脚本读取已有的 `server/.env.platform`，停止本项目的镜像版 web/api/worker，保留原数据库卷并将数据库映射到本机 55432，准备 Python 依赖并运行数据库迁移。现有账号和项目记录继续使用，不重置管理员密码。首次切换时会把已有容器素材复制到 `server/data/assets`，不会覆盖内容不同的同名文件。
+脚本读取已有的 `server/.env.platform`，只启动 PostgreSQL 并将其映射到本机 55432，不会启动或停止镜像版 web/api/worker。开发数据库沿用原平台数据库卷，现有账号和项目记录继续使用，不重置管理员密码。首次切换时会把已有容器素材复制到 `server/data/assets`，不会覆盖内容不同的同名文件。若旧镜像应用仍在运行，请先自行决定何时停用，再启动本机开发服务。
 
 然后开三个终端，工作目录均为仓库根目录：
 
@@ -100,7 +100,7 @@ npm run dev:migrate
 
 各终端按 `Ctrl+C` 停止该进程；Worker 会等待当前工作步骤结束，再次按 `Ctrl+C` 可强制结束。停止应用进程不会删除数据库或素材。
 
-调试期间无需启动 Docker 里的 web/api/worker。`migrate-1` 是一次性任务，`Exited (0)` 表示迁移成功，属于正常状态。不要反复点击它的启动按钮。
+调试期间无需启动 Docker 里的 web/api/worker。开发用 `compose.dev.yaml` 只包含数据库。原部署编排中的 `migrate-1` 是一次性任务，`Exited (0)` 表示迁移成功，属于正常状态。不要反复点击它的启动按钮。
 
 当前开发模式使用本机 `server/data/assets`，原容器素材卷保留。以后若切回镜像运行，需要同步本机新增素材到容器素材卷，避免数据库中的素材记录找不到文件。
 
@@ -140,7 +140,7 @@ Compose 将旧环境凭据同时注入 API 和 Worker，以支持渠道状态与
    sed -i '' -E 's/^([[:space:]]*(export[[:space:]]+)?)TAPNOW_/\1ELREN_/' server/.env.platform server/.env.providers
    ```
 
-2. 导出旧库，启动新库并导入。本机调试在 compose 命令后追加 `-f compose.dev.yaml`；部署环境导入后执行 `up -d --build` 启动其余服务：
+2. 导出旧库，启动新库并导入。本机调试将下面命令中的 `-f compose.platform.yaml` 替换为 `-f compose.dev.yaml`；部署环境导入后执行 `up -d --build` 启动其余服务：
 
    ```bash
    docker start tapnow-platform-db-1

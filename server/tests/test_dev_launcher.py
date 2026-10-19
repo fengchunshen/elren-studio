@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import os
 from pathlib import Path
 import sys
@@ -90,6 +91,52 @@ def test_api_conflict_is_reported_before_docker_changes(tmp_path, monkeypatch):
         dev.start_all({'API':8000,'WEB':8081}, {})
     assert docker_calls == []
     assert not (tmp_path/'control.sock').exists()
+
+
+def test_setup_rejects_running_app_containers_before_starting_database(monkeypatch):
+    commands = []
+    monkeypatch.setattr(dev, "ensure_docker", lambda env: None)
+    def run(args, environment, capture=False):
+        commands.append(args)
+        if "ps" in args:
+            return SimpleNamespace(stdout="worker\nweb\n")
+        return SimpleNamespace(stdout="")
+    monkeypatch.setattr(dev, "run", run)
+    with pytest.raises(ValueError, match="worker, web"):
+        dev.setup({"DB": 55432, "WEB": 8081, "API": 8000}, {})
+    assert not any("up" in command or "stop" in command for command in commands)
+
+
+def test_setup_starts_only_database_without_stopping_app_containers(tmp_path, monkeypatch):
+    root = tmp_path
+    server = root / "server"
+    runtime = server / "agent-runtime"
+    runtime.mkdir(parents=True)
+    (root / "node_modules/.bin").mkdir(parents=True)
+    (root / "node_modules/.bin/vite").touch()
+    lock = runtime / "package-lock.json"
+    lock.write_text("{}")
+    marker = runtime / "node_modules/.elren-lock.sha256"
+    marker.parent.mkdir()
+    marker.write_text(hashlib.sha256(lock.read_bytes()).hexdigest())
+    monkeypatch.setattr(dev, "ROOT", root)
+    monkeypatch.setattr(dev, "SERVER", server)
+    monkeypatch.setattr(dev, "ensure_docker", lambda env: None)
+    monkeypatch.setattr(dev, "copy_assets", lambda env: None)
+    monkeypatch.setattr(dev, "check_port", lambda port: None)
+    monkeypatch.setattr(dev, "migrate", lambda env: None)
+    commands = []
+    def run(args, environment, capture=False):
+        commands.append(args)
+        return SimpleNamespace(stdout="")
+    monkeypatch.setattr(dev, "run", run)
+    monkeypatch.setattr(dev.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(returncode=1, stdout=""))
+    dev.setup({"DB": 55432, "WEB": 8081, "API": 8000}, {}, announce=False)
+    up = [command for command in commands if "up" in command]
+    assert len(up) == 1
+    assert up[0][-1] == "db"
+    assert str(root / "compose.dev.yaml") in up[0]
+    assert not any("stop" in command for command in commands)
 
 
 def test_api_and_web_children_are_terminated_when_supervisor_disappears(monkeypatch):
