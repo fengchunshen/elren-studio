@@ -1,0 +1,673 @@
+[
+  {
+    "harness": "deepagents",
+    "case": "approval",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "recovery_completed": true,
+      "only_one_task": true,
+      "original_context_retained": true,
+      "no_task_before_approval": true,
+      "paused_before_approval": true
+    },
+    "observations": [],
+    "seconds": 2.179,
+    "first_tool_seconds": 0.8067264170094859,
+    "model_requests": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "f38d1ba8464cb9ce1703cef4a33d261a6fe66b05918b016424d366340cfd61c9"
+  },
+  {
+    "harness": "deepagents",
+    "case": "chain",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true
+    },
+    "observations": [],
+    "seconds": 1.372,
+    "first_tool_seconds": 1.0832894170016516,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "d34f418b9678432b8bc7c76f652d14bbbb3b48b09d90bfe738b1640881462894"
+  },
+  {
+    "harness": "deepagents",
+    "case": "conflict",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "stale_write_rejected": true,
+      "manual_edit_preserved": true,
+      "no_generation": true
+    },
+    "observations": [],
+    "seconds": 1.063,
+    "first_tool_seconds": 0.7973090829909779,
+    "model_requests": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [
+      {
+        "tool": "edit_node",
+        "args": {
+          "node_id": "shot-b",
+          "expected_version": 1,
+          "prompt": "方向2：银色水杯，冷色背景",
+          "ratio": "9:16",
+          "action_id": "edit-b"
+        },
+        "result": {
+          "error": "VERSION_CONFLICT",
+          "current_version": 2
+        }
+      }
+    ],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "c4810aca3001987be897c6e1556cd2ae4cd6e8c3dc826d83499d01b41322baf5"
+  },
+  {
+    "harness": "deepagents",
+    "case": "crash",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "recovery_completed": true,
+      "only_one_task": true,
+      "original_context_retained": true,
+      "killed_after_commit": true
+    },
+    "observations": [],
+    "seconds": 1.776,
+    "first_tool_seconds": 0.7688251250074245,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "c157cc20f75eb057a5912d2c3bb561de592dc9ddc1247a19baf3ecd466a7b7f6"
+  },
+  {
+    "harness": "deepagents",
+    "case": "restart",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "recovery_completed": true,
+      "only_one_task": true,
+      "original_context_retained": true
+    },
+    "observations": [],
+    "seconds": 2.428,
+    "first_tool_seconds": 0.8077589169843122,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "41dba6bcd3bf6274a2c47abede3356ae548d8c6c18d5e2ec64252cd1a99bf9b3"
+  },
+  {
+    "harness": "dsh",
+    "case": "chain",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true
+    },
+    "observations": [],
+    "seconds": 0.555,
+    "first_tool_seconds": 0.47427112501463853,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "7fdef610c6896819ab9bfe421288302d6098d3c7d191a81c3c311ff9692db337"
+  },
+  {
+    "harness": "dsh",
+    "case": "conflict",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "stale_write_rejected": true,
+      "manual_edit_preserved": true,
+      "no_generation": true
+    },
+    "observations": [],
+    "seconds": 0.441,
+    "first_tool_seconds": 0.36833949998253956,
+    "model_requests": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [
+      {
+        "tool": "edit_node",
+        "args": {
+          "node_id": "shot-b",
+          "expected_version": 1,
+          "prompt": "方向2：银色水杯，冷色背景",
+          "ratio": "9:16",
+          "action_id": "edit-b"
+        },
+        "result": {
+          "error": "VERSION_CONFLICT",
+          "current_version": 2
+        }
+      }
+    ],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "82265ef93a8ed771ae84540b1d86eb8c5b17163592e87089b233eb43310b17df"
+  },
+  {
+    "harness": "dsh",
+    "case": "crash",
+    "mode": "scripted",
+    "passed": false,
+    "checks": {
+      "recovery_completed": false,
+      "only_one_task": true,
+      "original_context_retained": false,
+      "killed_after_commit": true
+    },
+    "observations": [
+      "SDK cannot reopen persisted session: already exists"
+    ],
+    "seconds": 0.679,
+    "first_tool_seconds": 0.40349412499926984,
+    "model_requests": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "98e73b4500d9add38942048e093593a7827b9ebe1337e88df49815dd0a345495"
+  },
+  {
+    "harness": "dsh",
+    "case": "restart",
+    "mode": "scripted",
+    "passed": false,
+    "checks": {
+      "recovery_completed": false,
+      "only_one_task": true,
+      "original_context_retained": false
+    },
+    "observations": [
+      "SDK cannot reopen persisted session: already exists"
+    ],
+    "seconds": 0.672,
+    "first_tool_seconds": 0.34072758301044814,
+    "model_requests": 3,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "6e51b42fed5f5de7530921be75998ff93e8704b1a9764ed1dba01d988897d561"
+  },
+  {
+    "harness": "dsh",
+    "case": "steer",
+    "mode": "scripted",
+    "passed": false,
+    "checks": {
+      "followup_received": true,
+      "followup_before_original_turn_end": false
+    },
+    "observations": [
+      "followup_first_model_request_index=3",
+      "This is queued SDK input, not a demonstrated native cancel API"
+    ],
+    "seconds": 0.438,
+    "first_tool_seconds": 0.37125699999160133,
+    "model_requests": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "aab0feeafb7b3d5514ce8f1d0d39d12ee0a97f72fa789b2f616a630794cad5b4"
+  },
+  {
+    "harness": "dsh-bridge",
+    "case": "chain",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true
+    },
+    "observations": [],
+    "seconds": 0.508,
+    "first_tool_seconds": 0.4035332089988515,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "6220086dc73a3e3c798541d250d268601852a9ee140ec0a53ad54cc2a396aa84"
+  },
+  {
+    "harness": "dsh-bridge",
+    "case": "conflict",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "stale_write_rejected": true,
+      "manual_edit_preserved": true,
+      "no_generation": true
+    },
+    "observations": [],
+    "seconds": 0.404,
+    "first_tool_seconds": 0.32770875000278465,
+    "model_requests": 4,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [
+      {
+        "tool": "edit_node",
+        "args": {
+          "node_id": "shot-b",
+          "expected_version": 1,
+          "prompt": "方向2：银色水杯，冷色背景",
+          "ratio": "9:16",
+          "action_id": "edit-b"
+        },
+        "result": {
+          "error": "VERSION_CONFLICT",
+          "current_version": 2
+        }
+      }
+    ],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "c0ddc2a151d530ee577e8627ef13e638a5ec99ab84a04bd1725af06177f90493"
+  },
+  {
+    "harness": "dsh-bridge",
+    "case": "crash",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "recovery_completed": true,
+      "only_one_task": true,
+      "original_context_retained": true,
+      "killed_after_commit": true
+    },
+    "observations": [],
+    "seconds": 0.696,
+    "first_tool_seconds": 0.3312144999799784,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "3e2bc3ebdae3fe92fa940b806236af6cb71c5ee92292d259db9ff741a797e19a"
+  },
+  {
+    "harness": "dsh-bridge",
+    "case": "restart",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "recovery_completed": true,
+      "only_one_task": true,
+      "original_context_retained": true
+    },
+    "observations": [],
+    "seconds": 0.734,
+    "first_tool_seconds": 0.3304926660202909,
+    "model_requests": 5,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "58ee0b1bcfe030b5c30efa9cd6933dd2344b015ce6cdf5c5f6d0f82cf1748ec6"
+  },
+  {
+    "harness": "dsh-bridge",
+    "case": "steer",
+    "mode": "scripted",
+    "passed": true,
+    "checks": {
+      "followup_received": true,
+      "followup_before_original_turn_end": true
+    },
+    "observations": [
+      "followup_first_model_request_index=1",
+      "This is queued SDK input, not a demonstrated native cancel API"
+    ],
+    "seconds": 0.388,
+    "first_tool_seconds": 0.3296552500105463,
+    "model_requests": 3,
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_hit_tokens": null,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "0a24964234d4099eb3e04c8545878584e70c56078e8839c0dfb7fd3566b39840"
+  },
+  {
+    "harness": "deepagents",
+    "case": "live-1",
+    "mode": "live",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true,
+      "first_turn_did_not_generate": true,
+      "query_turn_did_not_regenerate": true,
+      "three_user_turns_completed": true
+    },
+    "observations": [],
+    "seconds": 9.261,
+    "first_tool_seconds": 1.527731833019061,
+    "model_requests": 8,
+    "input_tokens": 30111,
+    "output_tokens": 605,
+    "cache_hit_tokens": 25728,
+    "rejected_tool_calls": [
+      {
+        "tool": "submit_generation",
+        "args": {
+          "node_id": "shot-b",
+          "action_id": "edit-shot-b-cold-916"
+        },
+        "result": {
+          "error": "ACTION_CONFLICT"
+        }
+      }
+    ],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "ffbecbc0312ebaa94916dca349422c835a8e35c3b12f2c5d8a5e0c1046ffda2c"
+  },
+  {
+    "harness": "deepagents",
+    "case": "live-2",
+    "mode": "live",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true,
+      "first_turn_did_not_generate": true,
+      "query_turn_did_not_regenerate": true,
+      "three_user_turns_completed": true
+    },
+    "observations": [],
+    "seconds": 7.215,
+    "first_tool_seconds": 1.8124810419976711,
+    "model_requests": 7,
+    "input_tokens": 25789,
+    "output_tokens": 480,
+    "cache_hit_tokens": 24448,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "delete",
+      "edit_file",
+      "edit_node",
+      "get_task",
+      "glob",
+      "grep",
+      "ls",
+      "read_canvas",
+      "read_file",
+      "submit_generation",
+      "task",
+      "wait_for_signal",
+      "write_file"
+    ],
+    "evidence_sha256": "5ed4277f3b6ca20e7933b63da8b784a1473c6cadeab96e98a7c98037c3ef2ded"
+  },
+  {
+    "harness": "dsh",
+    "case": "live-1",
+    "mode": "live",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true,
+      "first_turn_did_not_generate": true,
+      "query_turn_did_not_regenerate": true,
+      "three_user_turns_completed": true
+    },
+    "observations": [],
+    "seconds": 7.505,
+    "first_tool_seconds": 1.4301008750044275,
+    "model_requests": 7,
+    "input_tokens": 7730,
+    "output_tokens": 375,
+    "cache_hit_tokens": 6272,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "939321ce11e4e7e254b0e8f5d3d5b378c7e7a490709924cb04bff649e2536679"
+  },
+  {
+    "harness": "dsh",
+    "case": "live-2",
+    "mode": "live",
+    "passed": true,
+    "checks": {
+      "only_second_changed": true,
+      "second_portrait_cold": true,
+      "references_preserved": true,
+      "one_generation_for_second": true,
+      "queried_real_task": true,
+      "completed_all_turns": true,
+      "first_turn_did_not_generate": true,
+      "query_turn_did_not_regenerate": true,
+      "three_user_turns_completed": true
+    },
+    "observations": [],
+    "seconds": 6.972,
+    "first_tool_seconds": 1.4925270839885343,
+    "model_requests": 7,
+    "input_tokens": 7747,
+    "output_tokens": 381,
+    "cache_hit_tokens": 6397,
+    "rejected_tool_calls": [],
+    "model_tool_names": [
+      "edit_node",
+      "get_task",
+      "read_canvas",
+      "submit_generation",
+      "wait_for_signal"
+    ],
+    "evidence_sha256": "fe44455360abf4ca72ea87df22daf5e88a7e9a011a9b8fc4f0378a6f366ae3f3"
+  }
+]

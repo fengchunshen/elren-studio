@@ -1,0 +1,213 @@
+{
+  "harness": "dsh-bridge",
+  "case": "restart",
+  "mode": "scripted",
+  "seconds": 0.734,
+  "first_tool_seconds": 0.3304926660202909,
+  "execution": {
+    "first": {
+      "returncode": 0,
+      "stdout": "{\"final\": \"已完成测试步骤。\", \"finish\": \"completed\"}\n",
+      "stderr": ""
+    },
+    "before_resume": {
+      "project_id": "synthetic-project",
+      "selection": [
+        "shot-a",
+        "shot-b",
+        "shot-c"
+      ],
+      "nodes": [
+        {
+          "id": "shot-a",
+          "title": "产品海报",
+          "prompt": "方向1：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        },
+        {
+          "id": "shot-b",
+          "title": "产品海报",
+          "prompt": "方向2：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        },
+        {
+          "id": "shot-c",
+          "title": "产品海报",
+          "prompt": "方向3：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-gen-b",
+          "action_id": "gen-b",
+          "node_id": "shot-b",
+          "status": "queued"
+        }
+      ]
+    },
+    "recovery": {
+      "returncode": 0,
+      "stdout": "{\"final\": \"已完成测试步骤。\", \"finish\": \"completed\"}\n",
+      "stderr": ""
+    }
+  },
+  "snapshot": {
+    "project_id": "synthetic-project",
+    "selection": [
+      "shot-a",
+      "shot-b",
+      "shot-c"
+    ],
+    "nodes": [
+      {
+        "id": "shot-a",
+        "title": "产品海报",
+        "prompt": "方向1：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-b",
+        "title": "产品海报",
+        "prompt": "方向2：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-c",
+        "title": "产品海报",
+        "prompt": "方向3：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task-gen-b",
+        "action_id": "gen-b",
+        "node_id": "shot-b",
+        "status": "queued"
+      }
+    ]
+  },
+  "audit": [
+    {
+      "tool": "read_canvas",
+      "args": {},
+      "result": {
+        "project_id": "synthetic-project",
+        "selection": [
+          "shot-a",
+          "shot-b",
+          "shot-c"
+        ],
+        "nodes": [
+          {
+            "id": "shot-a",
+            "title": "产品海报",
+            "prompt": "方向1：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-b",
+            "title": "产品海报",
+            "prompt": "方向2：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-c",
+            "title": "产品海报",
+            "prompt": "方向3：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          }
+        ],
+        "tasks": []
+      }
+    },
+    {
+      "tool": "submit_generation",
+      "args": {
+        "node_id": "shot-b",
+        "action_id": "gen-b"
+      },
+      "result": {
+        "task_id": "task-gen-b",
+        "status": "queued",
+        "simulated": true
+      }
+    },
+    {
+      "tool": "get_task",
+      "args": {
+        "task_id": "task-gen-b"
+      },
+      "result": {
+        "task_id": "task-gen-b",
+        "node_id": "shot-b",
+        "status": "queued"
+      }
+    }
+  ],
+  "model_requests": 5,
+  "usage": [
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    }
+  ]
+}

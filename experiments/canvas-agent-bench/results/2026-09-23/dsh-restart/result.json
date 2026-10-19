@@ -1,0 +1,192 @@
+{
+  "harness": "dsh",
+  "case": "restart",
+  "mode": "scripted",
+  "seconds": 0.672,
+  "first_tool_seconds": 0.34072758301044814,
+  "execution": {
+    "first": {
+      "returncode": 0,
+      "stdout": "{\"final\": \"已完成测试步骤。\", \"finish\": \"completed\"}\n",
+      "stderr": ""
+    },
+    "before_resume": {
+      "project_id": "synthetic-project",
+      "selection": [
+        "shot-a",
+        "shot-b",
+        "shot-c"
+      ],
+      "nodes": [
+        {
+          "id": "shot-a",
+          "title": "产品海报",
+          "prompt": "方向1：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        },
+        {
+          "id": "shot-b",
+          "title": "产品海报",
+          "prompt": "方向2：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        },
+        {
+          "id": "shot-c",
+          "title": "产品海报",
+          "prompt": "方向3：银色水杯，暖色背景",
+          "ratio": "1:1",
+          "version": 1,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-gen-b",
+          "action_id": "gen-b",
+          "node_id": "shot-b",
+          "status": "queued"
+        }
+      ]
+    },
+    "recovery": {
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/Users/megumi/Develop/elren-studio/experiments/canvas-agent-bench/worker.py\", line 107, in <module>\n    if HARNESS=='dsh': dsh()\n                       ~~~^^\n  File \"/Users/megumi/Develop/elren-studio/experiments/canvas-agent-bench/worker.py\", line 71, in dsh\n    result=harness.run(prompt,session_id='canvas-session',on_notification=collect)\n  File \"/Users/megumi/Develop/Siran/python/sdk/src/deepseek_harness/api.py\", line 131, in run\n    return self.start_session(session_id).run(input, on_notification=on_notification)\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/megumi/Develop/Siran/python/sdk/src/deepseek_harness/api.py\", line 162, in run\n    message_id = self.harness.client.session_prompt(\n        self.id,\n        content_blocks,\n        notification_subscription=subscription,\n    )\n  File \"/Users/megumi/Develop/Siran/python/sdk/src/deepseek_harness/client.py\", line 181, in session_prompt\n    response = self.request(\n        \"session/prompt\",\n    ...<4 lines>...\n        notification_subscription=notification_subscription,\n    )\n  File \"/Users/megumi/Develop/Siran/python/sdk/src/deepseek_harness/client.py\", line 202, in request\n    result = self._request_raw(\n        method,\n    ...<4 lines>...\n        notification_subscription=notification_subscription,\n    )\n  File \"/Users/megumi/Develop/Siran/python/sdk/src/deepseek_harness/client.py\", line 329, in _request_raw\n    raise item\ndeepseek_harness.errors.JsonRpcError: session \"canvas-session\" already exists\n"
+    }
+  },
+  "snapshot": {
+    "project_id": "synthetic-project",
+    "selection": [
+      "shot-a",
+      "shot-b",
+      "shot-c"
+    ],
+    "nodes": [
+      {
+        "id": "shot-a",
+        "title": "产品海报",
+        "prompt": "方向1：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-b",
+        "title": "产品海报",
+        "prompt": "方向2：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-c",
+        "title": "产品海报",
+        "prompt": "方向3：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task-gen-b",
+        "action_id": "gen-b",
+        "node_id": "shot-b",
+        "status": "queued"
+      }
+    ]
+  },
+  "audit": [
+    {
+      "tool": "read_canvas",
+      "args": {},
+      "result": {
+        "project_id": "synthetic-project",
+        "selection": [
+          "shot-a",
+          "shot-b",
+          "shot-c"
+        ],
+        "nodes": [
+          {
+            "id": "shot-a",
+            "title": "产品海报",
+            "prompt": "方向1：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-b",
+            "title": "产品海报",
+            "prompt": "方向2：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-c",
+            "title": "产品海报",
+            "prompt": "方向3：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          }
+        ],
+        "tasks": []
+      }
+    },
+    {
+      "tool": "submit_generation",
+      "args": {
+        "node_id": "shot-b",
+        "action_id": "gen-b"
+      },
+      "result": {
+        "task_id": "task-gen-b",
+        "status": "queued",
+        "simulated": true
+      }
+    }
+  ],
+  "model_requests": 3,
+  "usage": [
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    }
+  ]
+}

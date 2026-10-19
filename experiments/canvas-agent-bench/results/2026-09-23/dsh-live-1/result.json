@@ -1,0 +1,225 @@
+{
+  "harness": "dsh",
+  "case": "live-1",
+  "mode": "live",
+  "seconds": 7.505,
+  "first_tool_seconds": 1.4301008750044275,
+  "execution": {
+    "returncode": 0,
+    "stdout": "{\"final\": \"已完成：仅修改第二个节点 shot-b（版本 1→2），比例改为 9:16、背景改为冷色，保留银色水杯与参考图 asset-cup-v1；shot-a、shot-c 未改动，未触发生成。\", \"finish\": \"completed\"}\n{\"final\": \"已为 shot-b 提交生成，任务 ID：task-gen-shot-b-cool-916（状态 queued）。shot-a、shot-c 未改动。\", \"finish\": \"completed\"}\n{\"final\": \"任务 task-gen-shot-b-cool-916（节点 shot-b）当前状态仍为 queued，未重新生成。\", \"finish\": \"completed\"}\n",
+    "stderr": ""
+  },
+  "snapshot": {
+    "project_id": "synthetic-project",
+    "selection": [
+      "shot-a",
+      "shot-b",
+      "shot-c"
+    ],
+    "nodes": [
+      {
+        "id": "shot-a",
+        "title": "产品海报",
+        "prompt": "方向1：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-b",
+        "title": "产品海报",
+        "prompt": "方向2：银色水杯，冷色背景",
+        "ratio": "9:16",
+        "version": 2,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      },
+      {
+        "id": "shot-c",
+        "title": "产品海报",
+        "prompt": "方向3：银色水杯，暖色背景",
+        "ratio": "1:1",
+        "version": 1,
+        "reference_ids": [
+          "asset-cup-v1"
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "task-gen-shot-b-cool-916",
+        "action_id": "gen-shot-b-cool-916",
+        "node_id": "shot-b",
+        "status": "queued"
+      }
+    ]
+  },
+  "audit": [
+    {
+      "tool": "read_canvas",
+      "args": {},
+      "result": {
+        "project_id": "synthetic-project",
+        "selection": [
+          "shot-a",
+          "shot-b",
+          "shot-c"
+        ],
+        "nodes": [
+          {
+            "id": "shot-a",
+            "title": "产品海报",
+            "prompt": "方向1：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-b",
+            "title": "产品海报",
+            "prompt": "方向2：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          },
+          {
+            "id": "shot-c",
+            "title": "产品海报",
+            "prompt": "方向3：银色水杯，暖色背景",
+            "ratio": "1:1",
+            "version": 1,
+            "reference_ids": [
+              "asset-cup-v1"
+            ]
+          }
+        ],
+        "tasks": []
+      }
+    },
+    {
+      "tool": "edit_node",
+      "args": {
+        "node_id": "shot-b",
+        "expected_version": 1,
+        "prompt": "方向2：银色水杯，冷色背景",
+        "ratio": "9:16",
+        "action_id": "edit-shot-b-cool-916"
+      },
+      "result": {
+        "node": {
+          "id": "shot-b",
+          "title": "产品海报",
+          "prompt": "方向2：银色水杯，冷色背景",
+          "ratio": "9:16",
+          "version": 2,
+          "reference_ids": [
+            "asset-cup-v1"
+          ]
+        }
+      }
+    },
+    {
+      "tool": "submit_generation",
+      "args": {
+        "node_id": "shot-b",
+        "action_id": "gen-shot-b-cool-916"
+      },
+      "result": {
+        "task_id": "task-gen-shot-b-cool-916",
+        "status": "queued",
+        "simulated": true
+      }
+    },
+    {
+      "tool": "get_task",
+      "args": {
+        "task_id": "task-gen-shot-b-cool-916"
+      },
+      "result": {
+        "task_id": "task-gen-shot-b-cool-916",
+        "node_id": "shot-b",
+        "status": "queued"
+      }
+    }
+  ],
+  "model_requests": 7,
+  "usage": [
+    {
+      "prompt_tokens": 687,
+      "completion_tokens": 37,
+      "total_tokens": 724,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 175
+    },
+    {
+      "prompt_tokens": 899,
+      "completion_tokens": 122,
+      "total_tokens": 1021,
+      "prompt_tokens_details": {
+        "cached_tokens": 640
+      },
+      "prompt_cache_hit_tokens": 640,
+      "prompt_cache_miss_tokens": 259
+    },
+    {
+      "prompt_tokens": 1080,
+      "completion_tokens": 54,
+      "total_tokens": 1134,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 184
+    },
+    {
+      "prompt_tokens": 1150,
+      "completion_tokens": 62,
+      "total_tokens": 1212,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 254
+    },
+    {
+      "prompt_tokens": 1245,
+      "completion_tokens": 32,
+      "total_tokens": 1277,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024
+      },
+      "prompt_cache_hit_tokens": 1024,
+      "prompt_cache_miss_tokens": 221
+    },
+    {
+      "prompt_tokens": 1295,
+      "completion_tokens": 44,
+      "total_tokens": 1339,
+      "prompt_tokens_details": {
+        "cached_tokens": 1152
+      },
+      "prompt_cache_hit_tokens": 1152,
+      "prompt_cache_miss_tokens": 143
+    },
+    {
+      "prompt_tokens": 1374,
+      "completion_tokens": 24,
+      "total_tokens": 1398,
+      "prompt_tokens_details": {
+        "cached_tokens": 1152
+      },
+      "prompt_cache_hit_tokens": 1152,
+      "prompt_cache_miss_tokens": 222
+    }
+  ]
+}
