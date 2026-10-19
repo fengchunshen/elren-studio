@@ -272,6 +272,38 @@ it('keeps the inspector selected during portal interactions and canvas panning, 
     } finally { editor.unmount(); }
 }, 40000);
 
+it('pans on a right-button drag and opens the canvas menu only for a right click that did not move', async () => {
+    window.localStorage.clear();
+    const { default: Editor } = await import('@/App.jsx');
+    const editor = render(<Editor />);
+    try {
+        const canvas = document.querySelector('#canvas-bg');
+        const world = canvas.firstElementChild;
+        const menu = () => document.querySelector('[data-slot="context-menu-content"][data-state="open"]');
+        // macOS/Linux send contextmenu on press, Windows after release.
+        const rightDrag = (dx, menuOnPress) => {
+            fireEvent.mouseDown(canvas, { button: 2, clientX: 600, clientY: 300 });
+            if (menuOnPress) fireEvent.contextMenu(canvas, { button: 2, clientX: 600, clientY: 300 });
+            act(() => {
+                if (dx) window.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 600 + dx, clientY: 300 }));
+                window.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 2, clientX: 600 + dx, clientY: 300 }));
+            });
+            if (!menuOnPress) fireEvent.contextMenu(canvas, { button: 2, clientX: 600 + dx, clientY: 300 });
+        };
+        // Assert the open menu synchronously: awaiting while it is open costs ~20s in jsdom.
+        for (const menuOnPress of [true, false]) {
+            const before = world.style.transform;
+            rightDrag(menuOnPress ? 80 : -80, menuOnPress);
+            expect(world.style.transform).not.toBe(before);
+            expect(menu()).toBeNull();
+            rightDrag(0, menuOnPress);
+            expect(menu()?.getAttribute('aria-label')).toBe('画布菜单');
+            fireEvent.keyDown(menu(), { key: 'Escape' });
+            expect(menu()).toBeNull();
+        }
+    } finally { editor.unmount(); }
+}, 30000);
+
 it('drags text nodes from card whitespace and the title while keeping text editing stationary', async () => {
     window.localStorage.clear();
     window.localStorage.setItem('elren_nodes', JSON.stringify([
@@ -329,7 +361,7 @@ it('creates one downstream image from a node plus, connects the source and undoe
         expect(target.getAttribute('data-selected')).toBe('true');
         expect(document.querySelectorAll('.node-wrapper')).toHaveLength(2);
         expect(document.querySelectorAll('.connection-group')).toHaveLength(1);
-        expect(screen.getByRole('button', { name: '文本', exact: true })).toBeTruthy();
+        expect(screen.getByRole('button', { name: /^文本(?: · .+)?$/ })).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: '查看参考文本' }));
         expect(await screen.findByRole('dialog', { name: '参考文本' })).toHaveProperty('textContent', '保留瓶身结构，清晨柔光');
         fireEvent.click(screen.getByRole('button', { name: '撤销 (Ctrl+Z)' }));

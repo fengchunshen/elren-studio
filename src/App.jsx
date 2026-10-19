@@ -8145,6 +8145,7 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     const copiedNodesRef = useRef(null); // 存储复制的节点数据
     const isPanningRef = useRef(false); // 使用ref跟踪画布拖动状态，避免状态丢失
     const panGestureRef = useRef(null);
+    const rightPanMovedRef = useRef(false); // Windows 在松开右键后才派发 contextmenu，右键拖动结束后吞掉这一次
     const panRafRef = useRef(null); // 画布拖动的 requestAnimationFrame
     const pendingPanUpdate = useRef(null); // 待处理的画布拖动更新
     const multiNodeDragStartPos = useRef(null); // 单节点和多节点共用的拖动起始位置
@@ -10188,9 +10189,11 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
 
     const handleMouseDown = (e) => {
         if (!e.currentTarget.contains(e.target) || sidebarPanel === 'notes' || connectingSource || connectingTarget) return;
-        if (e.button !== 0 && e.button !== 1) return;
+        if (e.button !== 0 && e.button !== 1 && e.button !== 2) return;
         if (e.target.closest('input, textarea, select, button, a, video[controls], audio[controls], [contenteditable="true"], [data-canvas-controls], [data-canvas-annotation], .node-wrapper')) return;
         suppressCanvasClickRef.current = false;
+        // 右键拖动空白处平移；未移动的右键在松开后打开新增菜单（见 handleCanvasContextMenu）。
+        if (e.button === 2) { if (!e.target.closest('[data-workflow-group]')) startCanvasPan(e); return; }
         if (e.button === 1 || spacePressedRef.current) { startCanvasPan(e); return; }
         e.preventDefault();
         window.getSelection()?.removeAllRanges();
@@ -10532,7 +10535,16 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
         // 重置 lastMousePos，防止状态残留导致后续拖动异常
         // 注意：不重置为 null，而是重置为初始值，保持类型一致
         lastMousePos.current = { x: 0, y: 0 };
+        const pan = panGestureRef.current;
         panGestureRef.current = null;
+        if (pan?.button === 2) {
+            if (pan.moved) rightPanMovedRef.current = !pan.menu;
+            else if (pan.menu && event?.type === 'pointerup') {
+                // macOS/Linux 在按下时派发 contextmenu，已被暂缓；未拖动则在原位置补发，交给 Radix 打开菜单。
+                const { target, clientX, clientY } = pan.menu;
+                (target.isConnected ? target : canvasRef.current)?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2, clientX, clientY }));
+            }
+        }
         commitDragPriority();
     };
 
@@ -10637,6 +10649,18 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     // Right-click empty canvas to add nodes; keep node actions on the nodes themselves.
     const handleCanvasContextMenu = (e) => {
         e.stopPropagation();
+        const pan = panGestureRef.current;
+        if (pan?.button === 2) {
+            // 右键仍按着：先不开菜单，松开时若未拖动再补发。
+            e.preventDefault();
+            pan.menu = { target: e.target, clientX: e.clientX, clientY: e.clientY };
+            return;
+        }
+        if (rightPanMovedRef.current) {
+            rightPanMovedRef.current = false;
+            e.preventDefault();
+            return;
+        }
         if (sidebarPanel === 'notes') {
             e.preventDefault();
             setAnnotationDraft(null);
@@ -30223,6 +30247,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                             data-pan-ready={spacePressed} data-panning={isPanning}
                             data-reference-mode={Boolean(referencePicker)}
                             onMouseDownCapture={event => {
+                                rightPanMovedRef.current = false; // 上一次右键拖动在画布外松开时，不吞掉新的右键
                                 if (referencePicker && event.button === 0 && !spacePressed && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) { event.preventDefault(); event.stopPropagation(); return; }
                                 handleCommentMouseDown(event);
                             }} onClickCapture={event => {
