@@ -2,6 +2,7 @@
 import argparse
 import fcntl
 import filecmp
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -305,6 +306,12 @@ def setup(ports, environment, announce=True):
     run(["uv", "sync", "--project", SERVER, "--frozen", "--cache-dir", SERVER / ".cache/uv"], environment)
     if not (ROOT / "node_modules/.bin/vite").exists():
         run(["npm", "ci"], environment)
+    agent_runtime = SERVER / "agent-runtime"
+    lock_hash = hashlib.sha256((agent_runtime / "package-lock.json").read_bytes()).hexdigest()
+    marker = agent_runtime / "node_modules/.elren-lock.sha256"
+    if not marker.exists() or marker.read_text() != lock_hash:
+        run(["npm", "ci", "--ignore-scripts"], environment, cwd=agent_runtime)
+        marker.write_text(lock_hash)
     migrate(environment)
     if announce:
         print(f"\n开发环境就绪。前端 http://localhost:{ports['WEB']}，API http://127.0.0.1:{ports['API']}，数据库 127.0.0.1:{ports['DB']}。")

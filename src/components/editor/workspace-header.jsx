@@ -9,10 +9,10 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/comp
 import { EditorDialog } from './editor-dialog';
 
 export function WorkspaceHeader({ name, onRename, onWorkspace, onCreate, onTemplates, onExport, onImport, onDownload,
-    onUndo, onRedo, canUndo, canRedo, onSettings, settingsLabel, toolbar, saveStatus }) {
+    onUndo, onRedo, canUndo, canRedo, onSettings, settingsLabel, toolbar, saveStatus, rightInset = 0 }) {
     const [rename, setRename] = useState(false), [draft, setDraft] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false);
     return <>
-        <header data-workspace-header className="pointer-events-none absolute inset-x-3 top-4 z-50 flex items-start justify-between gap-2 sm:inset-x-4 sm:gap-3">
+        <header data-workspace-header style={rightInset ? { right: `min(${rightInset + 24}px, calc(100% - 180px))` } : undefined} className="pointer-events-none absolute inset-x-3 top-4 z-50 flex items-start justify-between gap-2 sm:inset-x-4 sm:gap-3">
             <DropdownMenu modal={false}><DropdownMenuTrigger asChild><Button variant="secondary" className="pointer-events-auto h-11 min-w-0 max-w-[300px] justify-start gap-2.5 rounded-xl border border-border/60 bg-popover px-3 shadow-sm" aria-label={`项目菜单：${name}`}>
                 <ElrenMark decorative className="[--elren-mark-size:26px]" /><span aria-hidden="true" className="h-4 w-px shrink-0 bg-border" /><span className="min-w-0 flex-1 truncate text-left text-sm">{name}</span><ChevronDown size={14} className="shrink-0 text-muted-foreground" />
             </Button></DropdownMenuTrigger>

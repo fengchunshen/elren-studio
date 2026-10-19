@@ -1,5 +1,9 @@
-import { resolveStoryboardNode, resolveStoryboardShot } from '@/lib/storyboard-flow';
+import { resolveStoryboardNode, resolveStoryboardShot, storyboardMotionPrompt } from '@/lib/storyboard-flow';
 import { ConnectionLayer } from '@/components/editor/connection-layer';
+import CanvasAgentPanel from '@/components/editor/canvas-agent-panel';
+import { applyAgentPatch, canvasAgentContext, agentNodeVersion, canvasMessageReference } from '@/lib/canvas-agent';
+import { applyAgentWorkflow, inspectWorkflow } from '@/lib/canvas-agent-workflow';
+import { readWorkflowLibrary } from '@/lib/agent-workflow-library';
 import { StoryboardCards } from '@/components/editor/storyboard-cards';
 import { parseStoryboardSourceNodeId } from '@/lib/storyboard-task-id';
 import { storyboardFrameCandidates, storyboardVideoReferences } from '@/lib/storyboard-frames';
@@ -114,7 +118,7 @@ import { appStorage as localStorage, databaseName, captureProjectStorage, saniti
 import { migrateLegacyValue } from './services/legacyStorage';
 import { platformEnabled, editorModels, getPlatformContext } from './services/platformContext';
 import { modelFetch as fetch, modelCredentials } from './services/modelService';
-import { submitGeneration, submitTask, restoreTasks } from './services/taskService';
+import { submitGeneration, prepareGeneration, submitTask, restoreTasks } from './services/taskService';
 import { taskHistoryStatus } from './lib/task-state';
 import { createPortal } from 'react-dom';
 import { marked } from 'marked';
@@ -5993,8 +5997,23 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
         const open = typeof value === 'function' ? value(previous === 'chat') : value;
         return open ? 'chat' : previous === 'chat' ? null : previous;
     }), []);
-    const [chatWidth, setChatWidth] = useState(400);
+    const [chatWidth, setChatWidth] = useState(480);
     const [chatFiles, setChatFiles] = useState([]);
+    const [agentPicking, setAgentPicking] = useState(false);
+    const [agentDraftReferences, setAgentDraftReferences] = useState([]);
+    useEffect(() => { if (!isChatOpen) setAgentPicking(false); }, [isChatOpen]);
+    useEffect(() => {
+        if (!agentPicking) return;
+        const exit = event => {
+            if (event.isComposing) return;
+            if (event.key === 'Escape') {event.preventDefault();event.stopImmediatePropagation();setAgentPicking(false);}
+            else if (!isUiShortcutTarget(event.target) && (['Delete','Backspace'].includes(event.key) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z'))) {
+                event.preventDefault();event.stopImmediatePropagation();
+            }
+        };
+        window.addEventListener('keydown', exit, true);
+        return () => window.removeEventListener('keydown', exit, true);
+    }, [agentPicking]);
     const [chatModel, setChatModel] = useState(() => {
         try { return localStorage.getItem('elren_chat_model') || (platformEnabled ? editorModels().find(item => item.type === 'Chat')?.id || '' : 'gemini-3-pro'); } catch { return ''; }
     });
@@ -21481,7 +21500,7 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
         if (shot.frameBindingError) { toast.error(shot.frameBindingError); return; }
         // 1. 构建更加丰富的 Prompt
         // 优先级：提示词 > 画面描述 > 风格标签 > 运镜
-        let finalPrompt = shot.prompt || "";
+        let finalPrompt = storyboardMotionPrompt(shot);
 
         // 如果提示词为空，尝试使用描述自动构建
         if (!finalPrompt && shot.description) {
@@ -29908,8 +29927,72 @@ ${inputText.substring(0, 15000)} ... (截断)
     const isInteracting = isDragging || isPanning;
     const panForNodeInspector = useCallback(dy => setView(previous => ({ ...previous, y: previous.y + dy })), []);
 
+    const toggleAgentReference = id => {
+        const node = nodesRef.current.find(item => item.id === id);
+        if (!node) return;
+        if (agentDraftReferences.some(reference => reference.node_id === id)) {
+            setAgentDraftReferences(previous => previous.filter(reference => reference.node_id !== id)); return;
+        }
+        if (agentDraftReferences.length >= 12) {toast.error('一条消息最多引用 12 个节点');return;}
+        const reference = canvasMessageReference(node, connectionsRef.current, history);
+        setAgentDraftReferences(previous => previous.some(item => item.node_id === id) ? previous : [...previous, reference]);
+    };
+
+    const handleCanvasAgentAction = async action => {
+        if (!snapshotReady || !snapshotWriterRef.current) throw new Error('画布正在恢复，请稍后重试');
+        const current = nodesRef.current, links = connectionsRef.current;
+        if (action.tool === 'read_canvas') return canvasAgentContext(current, links,
+            new Set([...selectedNodeIdsRef.current, selectedNodeIdRef.current].filter(Boolean)), editorModels());
+        if (action.tool === 'read_workflow_library') return readWorkflowLibrary();
+        if (action.tool === 'inspect_workflow') return inspectWorkflow(current, links, action.arguments.node_ids, editorModels());
+        if (['apply_canvas_patch','apply_workflow'].includes(action.tool)) {
+            const storage = captureProjectStorage();
+            const receipts = JSON.parse(storage.getItem('elren_agent_receipts') || '{}');
+            if (receipts[action.id]) return receipts[action.id];
+            const changed = (action.tool === 'apply_workflow' ? applyAgentWorkflow : applyAgentPatch)(current, links, action, editorModels(), getCanvasPasteCenter());
+            saveToUndoStackRef.current();
+            nodesRef.current = changed.nodes; connectionsRef.current = changed.connections;
+            setNodes(changed.nodes); setConnections(changed.connections);
+            setSelectedNodeIds(new Set(changed.touched)); setSelectedNodeId(changed.touched.length === 1 ? changed.touched[0] : null);
+            snapshotWriterRef.current.schedule(sanitizeImportedProject({ nodes: changed.nodes, connections: changed.connections, projectName, annotations, view }));
+            await snapshotWriterRef.current.flush();
+            receipts[action.id] = changed.result;
+            storage.setItem('elren_agent_receipts', JSON.stringify(Object.fromEntries(Object.entries(receipts).slice(-200))));
+            const target = changed.nodes.find(n => n.id === changed.touched[0]);
+            if (target && canvasRef.current) setView(previous => revealCanvasNode(previous, target, { width: canvasRef.current.clientWidth - chatWidth, height: canvasRef.current.clientHeight }));
+            return changed.result;
+        }
+        if (action.tool === 'generate_node') {
+            const node = current.find(n => n.id === action.arguments.node_id);
+            if (!node || !['gen-image','gen-video'].includes(node.type)) throw new Error('当前节点暂不支持对话生成');
+            if (node.maskContent) throw new Error('蒙版编辑请通过节点生成面板执行');
+            if (agentNodeVersion(node, links) !== action.arguments.expected_version) throw new Error('节点已被修改，请让助手重新读取后生成');
+            if (history.some(task => task.sourceNodeId === node.id && ['running','processing','queued','submitting','pending'].includes(task.status))) throw new Error('该节点已有生成任务，请等待完成');
+            assertConnectedInputs(node.id);
+            const resolved = resolvePromptReferences(node.settings?.[node.type === 'gen-video' ? 'videoPrompt' : 'prompt'] || '', node.settings?.promptReferences);
+            const prompt = [...getConnectedTextNodes(node.id), resolved.prompt].filter(Boolean).join('\n');
+            const ports = node.settings?.useFirstLastFrame ? ['default','veo_start','veo_end'] : ['default','veo_start'];
+            const media = uniqueReferenceMedia([...resolved.media, ...(node.settings?.referenceImages || []).map(url => ({url,type:'image',role:'reference'})),
+                ...ports.flatMap(port => getConnectedNodeIOEnvelopes(node.id, port).flatMap(envelope => envelope.media.filter(item => item.role !== 'frame')
+                    .map(item => ({ ...item, role: port === 'veo_start' ? 'first_frame' : port === 'veo_end' ? 'last_frame' : 'reference' }))))]);
+            const parameters = { ...node.settings?.customParams, ratio: node.settings?.ratio, aspect_ratio: node.settings?.ratio,
+                resolution: node.settings?.resolution, size: node.settings?.size || node.settings?.resolution,
+                duration: String(node.settings?.duration || '').replace('s',''), n: 1, count: 1 };
+            return prepareGeneration({modelId:node.settings?.model,prompt,references:await Promise.all(media.map(async item => ({...item,url:await resolveSpecialUrl(item.url)}))),parameters});
+        }
+        throw new Error('此画布操作尚未开放');
+    };
+
     return (
         <>
+            {platformEnabled && <CanvasAgentPanel open={isChatOpen} ready={snapshotReady} projectId={currentWorkspaceProjectId()}
+                models={editorModels()} width={chatWidth} onOpen={() => setIsChatOpen(true)} onClose={() => setIsChatOpen(false)} onAction={handleCanvasAgentAction}
+                picking={agentPicking} references={agentDraftReferences.map(reference => ({...reference,missing:!nodesMap.has(reference.node_id)}))}
+                onStartPicking={() => {setReferencePicker(null);setConnectingSource(null);setConnectingTarget(null);setAgentPicking(true);}}
+                onStopPicking={() => setAgentPicking(false)} onRemoveReference={id => setAgentDraftReferences(previous => previous.filter(item => item.node_id !== id))}
+                onClearReferences={() => setAgentDraftReferences([])} ImageComponent={LazyBase64Image}
+                selectedNames={[...new Set([...selectedNodeIds, selectedNodeId].filter(Boolean))].map(id => nodeDisplayName(nodesMap.get(id)))}
+                nodeName={id => nodeDisplayName(nodesMap.get(id))} />}
             <EditorDialog isOpen={!!groupDraft} onClose={() => setGroupDraft(null)} title={groupDraft?.id ? '重命名分组' : '创建命名分组'} className="w-[400px]" bodyClassName="p-5">
                 <form className="space-y-4" onSubmit={event => { event.preventDefault(); if (!groupDraft.name.trim()) return; saveToUndoStack(); setNodes(previous => groupWorkflowNodes(previous, groupDraft.ids, groupDraft.name, groupDraft.id)); setGroupDraft(null); }}>
                     <Label htmlFor="workflow-group-name">分组名称</Label><Input id="workflow-group-name" autoFocus maxLength={100} value={groupDraft?.name || ''} onChange={event => setGroupDraft(previous => ({ ...previous, name: event.target.value }))} />
@@ -29937,7 +30020,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                     if (frameContextMenu.visible) setFrameContextMenu(prev => ({ ...prev, visible: false }));
                 }}
             >
-                <WorkspaceHeader saveStatus={saveStatus} name={projectName} onRename={renameCurrentProject} onWorkspace={() => openWorkspace()} onCreate={() => openWorkspace(true)}
+                <WorkspaceHeader rightInset={platformEnabled && isChatOpen ? chatWidth : 0} saveStatus={saveStatus} name={projectName} onRename={renameCurrentProject} onWorkspace={() => openWorkspace()} onCreate={() => openWorkspace(true)}
                     onTemplates={() => setSidebarPanel('templates')} onExport={handleSaveProject} onImport={handleLoadProject} onDownload={handleBatchDownload}
                     onUndo={undo} onRedo={redo} canUndo={undoStack.length > 0} canRedo={redoStack.length > 0}
                     onSettings={platformEnabled ? undefined : () => setSettingsOpen(true)} settingsLabel={t('API 设置')}
@@ -29951,7 +30034,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                     }`}>
                     <WorkspaceSidebar assetRequest={assetLibraryRequest} panel={sidebarPanel} onPanelChange={setSidebarPanel} templateRequest={templateRequest}
                         nodes={nodes} history={history} historyContent={historyOpenContent} charactersContent={charactersOpenContent}
-                        showCharacterLibrary={!platformEnabled} showAdvanced={!platformEnabled} accountSlot={platformAccount}
+                        showCharacterLibrary={!platformEnabled} showAdvanced={!platformEnabled} hideChatMenu={platformEnabled} accountSlot={platformAccount}
                         onPreviewHistory={(item, url, index) => setLightboxItem({ ...item, url: resolveHistoryUrl(item, url), selectedMjImageIndex: index, storyboardContext: null })}
                         onDownloadHistory={item => handleHistoryBatchDownload([item])}
                         selectedCount={nodes.filter(node => selectedNodeIds.has(node.id) || node.id === selectedNodeId).length}
@@ -30245,12 +30328,20 @@ ${inputText.substring(0, 15000)} ... (截断)
                             data-node-overlays-suspended={Boolean(dragNodeId || isPanning || resizingNodeId || isSelecting)}
                             data-comment-mode={sidebarPanel === 'notes'}
                             data-pan-ready={spacePressed} data-panning={isPanning}
-                            data-reference-mode={Boolean(referencePicker)}
+                            data-reference-mode={Boolean(referencePicker || agentPicking)}
                             onMouseDownCapture={event => {
                                 rightPanMovedRef.current = false; // 上一次右键拖动在画布外松开时，不吞掉新的右键
-                                if (referencePicker && event.button === 0 && !spacePressed && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) { event.preventDefault(); event.stopPropagation(); return; }
+                                if ((referencePicker || agentPicking) && event.button === 0 && !spacePressed && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) { event.preventDefault(); event.stopPropagation(); return; }
                                 handleCommentMouseDown(event);
                             }} onClickCapture={event => {
+                                if (agentPicking && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) {
+                                    event.preventDefault();event.stopPropagation();
+                                    if (spacePressed) return;
+                                    const element = event.target.closest('[data-agent-reference-id], .node-wrapper[data-node-id]');
+                                    if (element) toggleAgentReference(element.dataset.agentReferenceId || element.dataset.nodeId);
+                                    else setAgentPicking(false);
+                                    return;
+                                }
                                 if (referencePicker && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) {
                                     event.preventDefault(); event.stopPropagation();
                                     if (spacePressed) return;
@@ -30275,7 +30366,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                                 backfaceVisibility: 'hidden'
                             }}>
                             <NodeInspectorPanContext.Provider value={panForNodeInspector}>
-                            <OverlaySuspensionContext.Provider value={Boolean(dragNodeId || isPanning || resizingNodeId || isSelecting)}>
+                            <OverlaySuspensionContext.Provider value={Boolean(dragNodeId || isPanning || resizingNodeId || isSelecting || agentPicking)}>
                             <div className="absolute origin-top-left will-change-transform" style={{
                                 '--canvas-selection-width': `${1 / view.zoom}px`,
                                 transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.zoom})`,
@@ -30306,6 +30397,14 @@ ${inputText.substring(0, 15000)} ... (截断)
                                     visibleNodes={visibleNodes}
                                 />
                                 {visibleNodes.map((node) => renderNode(node))}
+                                {agentPicking && visibleNodes.map(node => {
+                                    const picked = agentDraftReferences.some(reference => reference.node_id === node.id);
+                                    return <Button key={`agent-reference-${node.id}`} data-agent-reference-id={node.id} aria-label={`引用节点：${nodeDisplayName(node)}`} aria-pressed={picked}
+                                        variant="ghost" className={`absolute z-[100000] block rounded-xl border bg-transparent p-0 text-foreground shadow-none hover:bg-foreground/5 ${picked ? 'border-foreground/60 bg-foreground/5' : 'border-transparent hover:border-foreground/40'}`}
+                                        style={{left:node.x,top:node.y-26,width:node.width,height:node.height+26,cursor:'copy'}}>
+                                        {picked && <span className="absolute right-2 top-1 rounded-md bg-popover px-2 py-1 text-xs shadow-sm">已引用</span>}
+                                    </Button>;
+                                })}
                                 {selectedNodeIds.size > 1 && sidebarPanel !== 'notes' && <SelectionCreateControl
                                     nodes={nodes.filter(node => selectedNodeIds.has(node.id))} zoom={view.zoom}
                                     onGroup={requestGroup} onSave={() => requestTemplateSave()}
@@ -30375,6 +30474,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                                 } ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}
                             style={{
                                 width: chatWidth,
+                                display: platformEnabled ? 'none' : undefined,
                                 pointerEvents: isChatOpen ? 'auto' : 'none'
                             }}
                             onMouseEnter={() => setIsChatHovered(true)}

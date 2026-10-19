@@ -1,4 +1,5 @@
 from decimal import Decimal
+import time
 from sqlalchemy import String, Text, JSON, Boolean, Float, Integer, Numeric, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from .db import Base, Entity
@@ -31,6 +32,32 @@ class Project(Entity, Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     name: Mapped[str] = mapped_column(String(200))
     archived: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class CanvasAgentSession(Entity, Base):
+    __tablename__ = "canvas_agent_sessions"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    offering_id: Mapped[str] = mapped_column(ForeignKey("model_offerings.id"))
+    client_id: Mapped[str] = mapped_column(String(100))
+    title: Mapped[str] = mapped_column(String(100), default="新对话")
+    status: Mapped[str] = mapped_column(String(30), default="idle")
+    messages: Mapped[list] = mapped_column(JSON, default=list)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_until: Mapped[float] = mapped_column(Float, default=0)
+    updated_at: Mapped[float] = mapped_column(Float, default=time.time)
+
+
+class CanvasAgentAction(Entity, Base):
+    __tablename__ = "canvas_agent_actions"
+    __table_args__ = (UniqueConstraint("session_id", "call_id"),)
+    session_id: Mapped[str] = mapped_column(ForeignKey("canvas_agent_sessions.id"), index=True)
+    call_id: Mapped[str] = mapped_column(String(200))
+    tool: Mapped[str] = mapped_column(String(60))
+    arguments: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(30), default="pending")
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
 
 class Channel(Entity, Base):

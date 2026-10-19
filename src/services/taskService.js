@@ -90,7 +90,7 @@ export async function uploadAsset(source, name = 'input.png') {
     return api('/assets', {method: 'POST', body: form});
 }
 
-export async function submitGeneration({modelId, prompt, images = [], references, shots, videoEdit, mask, parameters = {}, source}) {
+export async function prepareGeneration({modelId, prompt, images = [], references, shots, videoEdit, mask, parameters = {}, source}) {
     const model = platformModel(modelId);
     if (Number(parameters.n || parameters.count || 1) > 1 && !model.parameters.n && !model.parameters.count) throw new Error('该模型当前按单张生成，请将生成数量设为 1');
     if (images.length && model.operation === 'image.generate') throw new Error('请选择支持参考图的图片模型');
@@ -107,9 +107,14 @@ export async function submitGeneration({modelId, prompt, images = [], references
     if ((roles.first_frame || roles.last_frame) && !model.inputs?.frames) throw new Error('当前模型未开放首尾帧输入');
     const assets = await Promise.all(media.map(item => uploadAsset(item.url, `reference.${({ image: 'png', video: 'mp4', audio: 'wav', model: 'glb' })[item.type] || 'bin'}`)));
     const maskAsset = mask ? await uploadAsset(mask, 'mask.png') : null;
-    return submitTask(modelId, {prompt, asset_ids: assets.map(asset => asset.id),
+    return { modelId, source, input: {prompt, asset_ids: assets.map(asset => asset.id),
         ...(references ? { references: assets.map((asset, index) => ({ asset_id: asset.id, role: media[index].role || 'reference' })) } : {}),
         ...(videoEdit ? { video_edit: videoEdit } : {}),
         ...(shots?.length ? { shots: shots.map(({ prompt, duration }) => ({ prompt, duration: Number(duration) })) } : {}),
-        ...(maskAsset ? {mask_asset_id: maskAsset.id} : {}), parameters: supportedParameters(modelId, parameters)}, source);
+        ...(maskAsset ? {mask_asset_id: maskAsset.id} : {}), parameters: supportedParameters(modelId, parameters)} };
+}
+
+export async function submitGeneration(options) {
+    const prepared = await prepareGeneration(options);
+    return submitTask(prepared.modelId, prepared.input, prepared.source);
 }

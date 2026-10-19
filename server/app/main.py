@@ -24,6 +24,15 @@ from .channel_probe import probe_channel
 
 app = FastAPI(title="Elren Studio Platform", version="0.1.0")
 PREFIX = "/api/v1"
+from .canvas_agent_api import router as canvas_agent_router
+app.include_router(canvas_agent_router)
+
+
+@app.on_event('shutdown')
+async def close_canvas_agents():
+    import asyncio
+    from .canvas_agent_runtime import PROCESSES
+    await asyncio.gather(*(process.close() for process in list(PROCESSES.values())), return_exceptions=True)
 
 
 @app.post(PREFIX + "/media-jobs")

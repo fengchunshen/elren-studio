@@ -2,6 +2,7 @@
 .env*
 data/
 tests/
+agent-runtime/node_modules/
 __pycache__/
 .pytest_cache/
 .cache/

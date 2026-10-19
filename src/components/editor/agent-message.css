@@ -1,0 +1,20 @@
+.agent-message { min-width: 0; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.agent-message > :first-child { margin-top: 0; }
+.agent-message > :last-child { margin-bottom: 0; }
+.agent-message p { margin: 0 0 .8em; }
+.agent-message strong { font-weight: 600; }
+.agent-message :is(h1,h2,h3,h4,h5,h6) { margin: 1.2em 0 .45em; font-size: 1em; line-height: 1.5; font-weight: 600; }
+.agent-message :is(ul,ol) { margin: .5em 0 .9em; padding-left: 1.35em; }
+.agent-message ul { list-style: disc; }
+.agent-message ol { list-style: decimal; }
+.agent-message li { margin: .2em 0; padding-left: .12em; }
+.agent-message li > p { margin: .25em 0; }
+.agent-message blockquote { border-left: 2px solid hsl(var(--border)); margin: .8em 0; padding-left: .9em; color: hsl(var(--muted-foreground)); }
+.agent-message code { border-radius: 4px; background: hsl(var(--muted)); padding: .12em .3em; font-size: .88em; }
+.agent-message pre { overflow-x: auto; max-width: 100%; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--muted)); margin: .8em 0; padding: .8em; }
+.agent-message pre code { padding: 0; background: transparent; white-space: pre; overflow-wrap: normal; }
+.agent-message table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: .8em 0; font-size: .93em; }
+.agent-message :is(th,td) { border-bottom: 1px solid hsl(var(--border)); padding: .5em .75em; text-align: left; min-width: 72px; }
+.agent-message th { font-weight: 600; }
+.agent-message a { text-decoration: underline; text-underline-offset: 3px; }
+.agent-message hr { border: 0; border-top: 1px solid hsl(var(--border)); margin: 1em 0; }

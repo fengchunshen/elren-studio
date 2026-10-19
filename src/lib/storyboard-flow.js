@@ -1,3 +1,8 @@
+export function storyboardMotionPrompt(shot) {
+    return [shot.prompt || shot.description || '', shot.dialogue?.trim() ? `对白与表演节奏：${shot.dialogue.trim()}` : '',
+        shot.sound?.trim() ? `声音设计：${shot.sound.trim()}` : ''].filter(Boolean).join('\n\n');
+}
+
 export function resolveStoryboardShot(shot, targetId, nodesMap, connections) {
     if (!shot.imageSource) return shot;
     const source=nodesMap.get(shot.imageSource.nodeId);

@@ -28,3 +28,10 @@ it('renders actual failure and preserves a playable result while preventing dupl
  view.rerender(<StoryboardCards {...props} shots={[{...shots[0],status:'generating'}]}/>);
  expect(screen.getByRole('button',{name:'正在生成'}).disabled).toBe(true);
 });
+it('keeps shot dialogue and sound editable without starting a generation',()=>{
+ render(<StoryboardCards {...props} shots={[{...shots[0],dialogue:'别开门',sound:'电话铃声'}]}/>);
+ fireEvent.click(screen.getByRole('button',{name:'编辑镜头 1：雨夜'}));
+ expect(screen.getByRole('textbox',{name:'镜头对白'}).value).toBe('别开门');
+ fireEvent.change(screen.getByRole('textbox',{name:'镜头声音'}),{target:{value:'脚步声'}});
+ expect(props.onChange).toHaveBeenLastCalledWith('one',{sound:'脚步声'});
+});

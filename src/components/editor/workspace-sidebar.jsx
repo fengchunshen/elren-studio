@@ -221,7 +221,7 @@ function TemplatesPanel({ entries, onSave, onRemove, onCapture, onInsert, select
 export function WorkspaceSidebar({ assetRequest, panel, onPanelChange, nodes, history, historyContent, charactersContent, selectedCount, templateRequest,
     onAddNode, onUploadCanvas, onLocateNode, onInsertAsset, normalizeAsset, onCaptureWorkflow, onInsertWorkflow,
     onSaveProject, onLoadProject, onImportWorkflow, onArrange, onSettings,
-    onPreviewHistory, onDownloadHistory, showCharacterLibrary = true, showAdvanced = true, accountSlot = null }) {
+    onPreviewHistory, onDownloadHistory, showCharacterLibrary = true, showAdvanced = true, hideChatMenu = false, accountSlot = null }) {
     const { t } = useTranslation();
     const [entries, setEntries] = useState([]);
     const [templatesExpanded, setTemplatesExpanded] = useState(false);
@@ -275,7 +275,7 @@ export function WorkspaceSidebar({ assetRequest, panel, onPanelChange, nodes, hi
             <div className="my-1 h-px w-5 bg-border" />
             <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" aria-label="更多工作台操作"><MoreHorizontal size={19} /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="end" className="w-52">
-                    <DropdownMenuItem onSelect={() => onPanelChange(panel === 'chat' ? null : 'chat')}><Bot size={15} />AI 对话</DropdownMenuItem>
+                    {!hideChatMenu && <DropdownMenuItem onSelect={() => onPanelChange(panel === 'chat' ? null : 'chat')}><Bot size={15} />AI 对话</DropdownMenuItem>}
                     {showCharacterLibrary && <DropdownMenuItem onSelect={() => onPanelChange(panel === 'characters' ? null : 'characters')}><Users size={15} />Sora 角色库</DropdownMenuItem>}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={onSaveProject}><Save size={15} />保存项目</DropdownMenuItem>

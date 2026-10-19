@@ -4,6 +4,8 @@ import { connectionError, connectionPort, nodeText } from './node-io';
 import productCover from '../assets/template-covers/product.jpg';
 import openingCover from '../assets/template-covers/opening.jpg';
 import detailCover from '../assets/template-covers/detail.jpg';
+import { SHORT_DRAMA_BLUEPRINT } from './agent-workflow-library';
+import { applyAgentWorkflow } from './canvas-agent-workflow';
 
 export const NODE_NAMES = {
     'model-input': '3D 素材',
@@ -94,6 +96,7 @@ function preset(id, name, description, video = false) {
         { from: 'source', to: 'generate' }, { from: 'text', to: 'generate' }, { from: 'generate', to: 'result' },
     ] };
 }
+const shortDrama = applyAgentWorkflow([], [], {id:'builtin-short-drama',arguments:SHORT_DRAMA_BLUEPRINT}, []);
 export const BUILTIN_WORKFLOWS = [
     { ...preset('builtin-image', '产品图片创作', '参考图片 + 文案 → 图片生成 → 结果预览'), cover: productCover, coverFit: 'cover' },
     { ...preset('builtin-video', '图生视频', '首帧图片 + 镜头描述 → 视频生成 → 结果预览', true), cover: openingCover },
@@ -103,6 +106,8 @@ export const BUILTIN_WORKFLOWS = [
             { id: 'script', type: 'text-node', x: 0, y: 0, width: 340, height: 300, settings: { text: '镜头 1：交代场景与主体。\n镜头 2：呈现细节和动作。\n镜头 3：收束画面，留下记忆点。' } },
             { id: 'shots', type: 'storyboard-node', x: 440, y: 0, width: 720, height: 500, settings: { projectTitle: '三镜头分镜', mode: 'image', viewMode: 'cards', shots: [] } },
         ], connections: [{ from: 'script', to: 'shots' }] },
+    { id:'builtin-short-drama',name:SHORT_DRAMA_BLUEPRINT.name,description:'剧本与人设 → 定妆/场景 → 确认分镜画面 → 对应镜头动画 → 剪辑；等待参考图时保留完整连线。',
+        builtin:true,kind:'workflow',cover:openingCover,nodes:shortDrama.nodes,connections:shortDrama.connections },
 ];
 
 export function instantiateWorkflow(workflow, point, models = {}) {
