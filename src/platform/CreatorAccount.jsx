@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {LayoutGrid,History,UserRound,LogOut,ShieldCheck} from 'lucide-react';
+import {LayoutGrid,History,UserRound,LogOut,ShieldCheck,ChevronDown} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -10,10 +10,13 @@ import {api} from '@/services/apiClient';
 import {DataTable,date,money,taskStatusLabel} from './platform-ui';
 
 export function CreatorAccountMenu({user,onOpen,onWorkspace,onAdmin,onLogout,placement='sidebar'}) {
-    return <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`账号菜单：${user.username}`} className={`${placement==='sidebar'?'mt-1':''} h-9 w-9 shrink-0 rounded-full border border-border bg-muted text-sm font-medium`}>{user.username.slice(0,1).toUpperCase()}</Button></DropdownMenuTrigger>
+    const initial=user.username.slice(0,1).toUpperCase();
+    return <DropdownMenu><DropdownMenuTrigger asChild>{placement==='header'
+        ?<Button variant="ghost" aria-label={`账号菜单：${user.username}`} className="h-10 shrink-0 gap-2 rounded-full border border-border bg-card pl-1 pr-1 font-normal sm:pr-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">{initial}</span><span className="hidden max-w-28 truncate sm:inline">{user.username}</span><ChevronDown size={15} className="hidden text-muted-foreground sm:block"/></Button>
+        :<Button variant="ghost" size="icon" aria-label={`账号菜单：${user.username}`} className="mt-1 h-9 w-9 shrink-0 rounded-full border border-border bg-muted text-sm font-medium">{initial}</Button>}</DropdownMenuTrigger>
         <DropdownMenuContent side={placement==='header'?'bottom':'right'} align="end" sideOffset={12} className="w-64 rounded-2xl p-2">
             <div className="px-3 py-3"><p className="text-sm font-medium">{user.username}</p><p className="mt-1 text-xs text-muted-foreground">{user.role==='admin'?'管理员账号':'个人工作空间'}</p></div><DropdownMenuSeparator/>
-            <DropdownMenuItem className="rounded-lg" onSelect={onWorkspace}><LayoutGrid size={15}/>工作空间</DropdownMenuItem>
+            {onWorkspace&&<DropdownMenuItem className="rounded-lg" onSelect={onWorkspace}><LayoutGrid size={15}/>工作空间</DropdownMenuItem>}
             <DropdownMenuItem className="rounded-lg" onSelect={()=>onOpen('usage')}><History size={15}/>使用记录</DropdownMenuItem>
             <DropdownMenuItem className="rounded-lg" onSelect={()=>onOpen('account')}><UserRound size={15}/>账户管理</DropdownMenuItem>
             {user.role==='admin'&&<><DropdownMenuSeparator/><DropdownMenuItem className="rounded-lg" onSelect={onAdmin}><ShieldCheck size={15}/>管理后台</DropdownMenuItem></>}

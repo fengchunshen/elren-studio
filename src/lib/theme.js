@@ -1,3 +1,6 @@
+// Themes are stored per project; the workspace page reuses the one last chosen on any canvas.
+export const LAST_THEME_KEY = 'elren:theme';
+
 export function applyTheme(theme) {
     const current = ['dark', 'light', 'solarized'].includes(theme) ? theme : 'dark';
     const root = document.documentElement;

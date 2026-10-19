@@ -5,15 +5,18 @@ import userEvent from '@testing-library/user-event';
 import PlatformRoot from '@/platform/PlatformRoot';
 import AdminWorkspace from '@/platform/AdminWorkspace';
 import {api} from '@/services/apiClient';
+import {setPlatformContext} from '@/services/platformContext';
+import {openCanvasProject} from '@/services/workspaceProjects';
 import {ElrenLoadingProvider} from '@/components/brand/elren-loading-provider';
 
 vi.mock('@/services/apiClient',()=>({api:vi.fn(),setCsrf:vi.fn()}));
 vi.mock('@/services/platformContext',()=>({platformEnabled:true,setPlatformContext:vi.fn(),getPlatformContext:()=>({})}));
 vi.mock('@/App.jsx',()=>({default:({platformAccount})=><div data-testid="creator-canvas">{platformAccount}</div>}));
+vi.mock('@/services/workspaceProjects',()=>({listWorkspaceProjects:vi.fn(async()=>[{id:'p1',name:'测试项目',updatedAt:0}]),createWorkspaceProject:vi.fn(),renameWorkspaceProject:vi.fn(),deleteWorkspaceProject:vi.fn(),openCanvasProject:vi.fn()}));
 const admin={id:'u1',username:'test-admin',role:'admin'};
 const creator={id:'u2',username:'creator',role:'user'};
 beforeEach(()=>{
-    window.localStorage.clear();window.history.replaceState({},'','/');api.mockReset();
+    window.localStorage.clear();window.history.replaceState({},'','/');api.mockReset();setPlatformContext.mockClear();openCanvasProject.mockClear();
     api.mockImplementation(async path=>path==='/auth/me'?{csrf_token:'test-only',user:admin}:path==='/projects'?{items:[{id:'p1',name:'测试项目',archived:false}]}:{items:[]});
 });
 
@@ -50,6 +53,28 @@ it('ordinary account exposes personal tools and ignores legacy administration ev
     for(const name of ['models','channels','prices','users'])await act(async()=>window.dispatchEvent(new CustomEvent('platform:panel',{detail:name})));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(api.mock.calls.some(([path])=>path.startsWith('/admin/'))).toBe(false);
+});
+
+it('lands on the workspace and opens a canvas only from a project',async()=>{
+    render(<PlatformRoot/>);
+    expect(await screen.findByRole('heading',{name:'工作空间'})).toBeTruthy();
+    expect(screen.queryByTestId('creator-canvas')).toBeNull();
+    expect(setPlatformContext).toHaveBeenLastCalledWith(expect.objectContaining({project:null}));
+    fireEvent.click(await screen.findByRole('button',{name:'打开项目：测试项目'}));
+    expect(openCanvasProject).toHaveBeenCalledWith('p1');
+});
+
+it('opens the canvas named in the URL and returns to the workspace for a missing project',async()=>{
+    window.history.replaceState({},'','/canvas/p1');
+    const first=render(<PlatformRoot/>);
+    expect(await screen.findByTestId('creator-canvas')).toBeTruthy();
+    expect(setPlatformContext).toHaveBeenCalledWith(expect.objectContaining({project:expect.objectContaining({id:'p1'})}));
+    first.unmount();
+    window.history.replaceState({},'','/canvas/deleted');
+    render(<PlatformRoot/>);
+    expect(await screen.findByRole('heading',{name:'工作空间'})).toBeTruthy();
+    expect(window.location.pathname).toBe('/');
+    expect(screen.queryByTestId('creator-canvas')).toBeNull();
 });
 
 it('ordinary user cannot mount administration through a direct URL',async()=>{

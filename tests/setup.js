@@ -18,3 +18,8 @@ HTMLElement.prototype.hasPointerCapture = () => false;
 HTMLElement.prototype.setPointerCapture = () => {};
 HTMLElement.prototype.releasePointerCapture = () => {};
 HTMLElement.prototype.scrollIntoView = () => {};
+// nwsapi 2.2.27 resolves :modal by calling Element.matches again, recursing until the stack overflows
+// (~0.3s per call). Floating UI probes it while positioning every Radix popper, so each menu took seconds
+// to open. jsdom has no top layer, so nothing can match :modal here.
+const nativeMatches = Element.prototype.matches;
+Element.prototype.matches = function matches(selector) { return selector === ':modal' ? false : nativeMatches.call(this, selector); };

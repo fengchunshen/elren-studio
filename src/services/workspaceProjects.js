@@ -1,10 +1,12 @@
 import { api } from './apiClient';
 import { getPlatformContext, platformEnabled } from './platformContext';
-import { libraryScope, listLibraryEntries, saveLibraryEntry } from './workspaceLibrary';
+import { libraryScope, listLibraryEntries, saveLibraryEntry, removeLibraryEntry } from './workspaceLibrary';
 import { sanitizeImportedProject } from './projectStorage';
-import { readSnapshotJournal } from '@/lib/snapshot-writer';
+import { readSnapshotJournal, JOURNAL_KEY } from '@/lib/snapshot-writer';
+import { canvasPath, canvasProjectId, workspacePath } from '@/lib/project-route';
 
-export const currentWorkspaceProjectId = () => platformEnabled ? getPlatformContext().project.id : window.localStorage.getItem('elren:local-project') || 'local-default';
+// The workspace page has no open project; the canvas always carries its project in the URL.
+export const currentWorkspaceProjectId = () => platformEnabled ? getPlatformContext()?.project?.id ?? null : canvasProjectId() || 'local-default';
 export function workspaceProjectPrefix(id, scope = libraryScope()) {
     return platformEnabled ? `elren:v2:${scope}:${id}:` : id === 'local-default' ? '' : `elren:local:${id}:`;
 }
@@ -57,9 +59,19 @@ async function readSnapshot(id, scope) {
 export async function rememberWorkspaceProject(project, scope = libraryScope()) {
     return saveLibraryEntry({ ...project, id: `project:${project.projectId}`, kind: 'project' }, scope);
 }
+// Local canvases created before the workspace became the entry page live in the unprefixed default project
+// and may never have been registered in the library.
+function unregisteredDefaultProject(stored) {
+    const local = window.localStorage;
+    if (platformEnabled || stored.some(entry => entry.projectId === 'local-default')) return [];
+    const meta = JSON.parse(local.getItem('elren_autosave_meta') || 'null');
+    if (!meta && !local.getItem('elren_nodes') && !local.getItem(JOURNAL_KEY)) return [];
+    return [{ projectId: 'local-default', name: local.getItem('elren_project_name') || '未命名项目', updatedAt: meta?.timestamp || 0 }];
+}
 export async function listWorkspaceProjects() {
     const scope = libraryScope();
-    const stored = (await listLibraryEntries(scope)).filter(entry => entry.kind === 'project');
+    const registered = (await listLibraryEntries(scope)).filter(entry => entry.kind === 'project');
+    const stored = [...registered, ...unregisteredDefaultProject(registered)];
     const projects = platformEnabled ? (await api('/projects')).items : stored.map(entry => ({ id: entry.projectId, name: entry.name }));
     assertScope(scope);
     return projects.filter(project => !project.archived).map(project => ({
@@ -88,10 +100,45 @@ export async function renameWorkspaceProject(project, name) {
     assertScope(scope);
     window.localStorage.setItem(`${workspaceProjectPrefix(project.id, scope)}elren_project_name`, clean);
     await rememberWorkspaceProject({ ...project, projectId: project.id, name: clean }, scope);
-    if (platformEnabled && getPlatformContext().project.id === project.id) getPlatformContext().project.name = clean;
+    if (platformEnabled && getPlatformContext()?.project?.id === project.id) getPlatformContext().project.name = clean;
     return clean;
 }
-export function activateWorkspaceProject(id) {
-    window.localStorage.setItem(platformEnabled ? `elren:project:${libraryScope()}` : 'elren:local-project', id);
-    window.location.reload();
+// The default local project shares unprefixed keys with browser-wide settings, so only its canvas content is cleared.
+const PROJECT_CONTENT_KEYS = ['elren_autosave', 'elren_autosave_meta', JOURNAL_KEY, 'elren_nodes', 'elren_connections', 'elren_canvas_annotations', 'elren_workspace_view', 'elren_project_name'];
+const PROJECT_DATABASES = ['elren_autosave_db', 'elren_images_db'];
+function deleteDatabase(name) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(name);
+        // Another tab may still hold the project open; the browser finishes deletion once it closes.
+        request.onsuccess = request.onblocked = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
 }
+export async function deleteWorkspaceProject(project) {
+    const scope = libraryScope();
+    if (project.id === canvasProjectId()) throw new Error('当前打开的项目不能删除');
+    if (platformEnabled) await api(`/projects/${project.id}`, { method: 'PATCH', body: { name: project.name, archived: true } });
+    assertScope(scope);
+    await removeLibraryEntry(`project:${project.id}`, scope);
+    const prefix = workspaceProjectPrefix(project.id, scope), local = window.localStorage;
+    if (!prefix) {
+        PROJECT_CONTENT_KEYS.forEach(key => local.removeItem(key));
+        await deleteDatabase('elren_autosave_db');
+        return;
+    }
+    Array.from({ length: local.length }, (_, index) => local.key(index)).filter(key => key?.startsWith(prefix)).forEach(key => local.removeItem(key));
+    const names = new Set(PROJECT_DATABASES.map(name => prefix + name));
+    if (indexedDB.databases) (await indexedDB.databases()).forEach(({ name }) => { if (name?.startsWith(prefix)) names.add(name); });
+    await Promise.all([...names].map(deleteDatabase));
+}
+// One at a time so a failure leaves the rest reportable; an account switch fails the remainder untouched.
+export async function deleteWorkspaceProjects(projects) {
+    const scope = libraryScope(), deleted = [], failed = [];
+    for (const project of projects) {
+        try { assertScope(scope); await deleteWorkspaceProject(project); deleted.push(project); } catch (error) { failed.push({ project, error }); }
+    }
+    return { deleted, failed };
+}
+// The editor pins storage and caches to one project per page load, so switching always reloads.
+export const openCanvasProject = id => window.location.assign(canvasPath(id));
+export const openWorkspacePage = (create = false) => window.location.assign(workspacePath(create));

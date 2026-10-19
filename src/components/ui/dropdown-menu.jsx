@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
-import { ChevronRight } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOverlayState, useOverlaysSuspended } from './overlay-suspension';
 
@@ -17,6 +17,13 @@ const DropdownMenuItem = React.forwardRef(({ className, ...props }, ref) => (
     <DropdownMenuPrimitive.Item ref={ref} data-slot="dropdown-menu-item" className={cn('relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50', className)} {...props} />
 ));
 DropdownMenuItem.displayName = 'DropdownMenuItem';
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+const DropdownMenuRadioItem = React.forwardRef(({ className, children, ...props }, ref) => (
+    <DropdownMenuPrimitive.RadioItem ref={ref} className={cn('relative flex cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50', className)} {...props}>
+        {children}<span className="absolute right-2 flex h-4 w-4 items-center justify-center"><DropdownMenuPrimitive.ItemIndicator><Check className="h-4 w-4" aria-hidden="true" /></DropdownMenuPrimitive.ItemIndicator></span>
+    </DropdownMenuPrimitive.RadioItem>
+));
+DropdownMenuRadioItem.displayName = 'DropdownMenuRadioItem';
 const DropdownMenuLabel = React.forwardRef(({ className, ...props }, ref) => <DropdownMenuPrimitive.Label ref={ref} className={cn('px-2 py-1.5 text-xs font-medium text-muted-foreground', className)} {...props} />);
 DropdownMenuLabel.displayName = 'DropdownMenuLabel';
 const DropdownMenuSeparator = React.forwardRef(({ className, ...props }, ref) => <DropdownMenuPrimitive.Separator ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />);
@@ -32,4 +39,4 @@ const DropdownMenuSubContent = React.forwardRef(({ className, sideOffset = 4, ..
     <DropdownMenuPrimitive.Portal><DropdownMenuPrimitive.SubContent ref={ref} sideOffset={sideOffset} collisionPadding={8} className={cn('z-[10060] min-w-40 max-h-[var(--radix-popper-available-height)] overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none', className)} {...props} /></DropdownMenuPrimitive.Portal>
 ));
 DropdownMenuSubContent.displayName = 'DropdownMenuSubContent';
-export { DropdownMenuLabel, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent };
+export { DropdownMenuLabel, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent };

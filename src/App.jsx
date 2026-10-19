@@ -89,10 +89,9 @@ import { EditorDialog } from '@/components/editor/editor-dialog';
 import { CanvasControls } from '@/components/editor/canvas-controls';
 import { WorkspaceSidebar } from '@/components/editor/workspace-sidebar';
 import { WorkspaceHeader } from '@/components/editor/workspace-header';
-import { WorkspaceHome } from '@/components/editor/workspace-home';
 import { CanvasWorkflowGroups } from '@/components/editor/canvas-workflow-groups';
 import { collectWorkflowGroups, groupWorkflowNodes, ungroupWorkflowNodes, cloneWorkflowGroups, workflowInsertionPoint, referencedNodeInsertionPoint } from '@/lib/workflow-groups';
-import { currentWorkspaceProjectId, rememberWorkspaceProject, writeWorkspaceSnapshot, renameWorkspaceProject, activateWorkspaceProject } from '@/services/workspaceProjects';
+import { currentWorkspaceProjectId, rememberWorkspaceProject, writeWorkspaceSnapshot, renameWorkspaceProject, openWorkspacePage } from '@/services/workspaceProjects';
 import { libraryScope, listLibraryEntries, saveLibraryEntry } from '@/services/workspaceLibrary';
 import { nodeDisplayName, describeReference, removeSourceReferences, removedPromptSources } from '@/lib/canvas-references';
 import { CanvasCommentComposer } from '@/components/editor/canvas-comment-composer';
@@ -104,7 +103,7 @@ import { GRID_SIZE, fitCanvasView, getNodeBounds, revealCanvasNode, snapDraggedN
 import { Slider } from '@/components/ui/slider';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
-import { applyTheme } from '@/lib/theme';
+import { applyTheme, LAST_THEME_KEY } from '@/lib/theme';
 import { useElrenLoading } from '@/components/brand/elren-loading-context';
 import { isUiShortcutTarget } from '@/lib/ui-events';
 import { createSnapshotWriter, readSnapshotJournal } from '@/lib/snapshot-writer';
@@ -4511,7 +4510,6 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     });
     const [language, setLanguage] = useState('zh');
     const allowProjectNavigationRef = useRef(false);
-    const [workspaceOpen, setWorkspaceOpen] = useState(false);
     const [referencePicker, setReferencePicker] = useState(null);
     const [cropDraft, setCropDraft] = useState(null);
     const [assetLibraryRequest, setAssetLibraryRequest] = useState(null);
@@ -4520,7 +4518,6 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     const completedMediaJobs = useRef(new Set());
     const [imageEditorId, setImageEditorId] = useState(null);
     const [threeStudioId, setThreeStudioId] = useState(null);
-    const [workspaceCreate, setWorkspaceCreate] = useState(false);
     const [templateRequest, setTemplateRequest] = useState(null);
     const [groupDraft, setGroupDraft] = useState(null);
     const workspaceScopeRef = useRef(null);
@@ -4558,6 +4555,7 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     useEffect(() => {
         try {
             localStorage.setItem('elren_theme', theme);
+            window.localStorage.setItem(LAST_THEME_KEY, theme);
         } catch (e) { }
         applyTheme(theme);
     }, [theme]);
@@ -19568,8 +19566,9 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
             previewConnections: connectionsRef.current || connections,
         }, scope);
     };
+    // The workspace is the entry page; leaving the canvas saves first and then navigates there.
     const openWorkspace = async (create = false) => {
-        try { await persistWorkspaceProject(); setSidebarPanel(null); setWorkspaceCreate(create); setWorkspaceOpen(true); }
+        try { await persistWorkspaceProject(); allowProjectNavigationRef.current = true; openWorkspacePage(create); }
         catch (error) { toast.error(`项目未能保存：${error.message}`); }
     };
     const renameCurrentProject = async name => {
@@ -29887,13 +29886,6 @@ ${inputText.substring(0, 15000)} ... (截断)
 
     return (
         <>
-            <WorkspaceHome open={workspaceOpen} createOnOpen={workspaceCreate} currentId={currentWorkspaceProjectId()} onClose={() => setWorkspaceOpen(false)} accountSlot={platformAccount ? React.cloneElement(platformAccount, { placement: 'header' }) : null}
-                onRenamed={(id, name) => { if (id === currentWorkspaceProjectId()) setProjectName(name); }}
-                onOpen={async id => {
-                    if (id === currentWorkspaceProjectId()) { setWorkspaceOpen(false); return; }
-                    try { await persistWorkspaceProject(); allowProjectNavigationRef.current = true; activateWorkspaceProject(id); }
-                    catch (error) { toast.error(`项目未能保存：${error.message}`); }
-                }} />
             <EditorDialog isOpen={!!groupDraft} onClose={() => setGroupDraft(null)} title={groupDraft?.id ? '重命名分组' : '创建命名分组'} className="w-[400px]" bodyClassName="p-5">
                 <form className="space-y-4" onSubmit={event => { event.preventDefault(); if (!groupDraft.name.trim()) return; saveToUndoStack(); setNodes(previous => groupWorkflowNodes(previous, groupDraft.ids, groupDraft.name, groupDraft.id)); setGroupDraft(null); }}>
                     <Label htmlFor="workflow-group-name">分组名称</Label><Input id="workflow-group-name" autoFocus maxLength={100} value={groupDraft?.name || ''} onChange={event => setGroupDraft(previous => ({ ...previous, name: event.target.value }))} />

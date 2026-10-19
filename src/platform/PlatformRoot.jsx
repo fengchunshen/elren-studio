@@ -1,4 +1,4 @@
-import React, {useEffect,useState,lazy,Suspense} from 'react';
+import React, {useEffect,useLayoutEffect,useState,lazy,Suspense} from 'react';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
@@ -7,11 +7,24 @@ import {ElrenBrand} from '@/components/brand/elren-brand';
 import {ElrenLoadingScreen} from '@/components/brand/elren-loader';
 import {api,setCsrf} from '@/services/apiClient';
 import {platformEnabled,setPlatformContext,getPlatformContext} from '@/services/platformContext';
+import {Toaster} from '@/components/ui/sonner';
+import {toast} from 'sonner';
+import {WorkspaceHome} from '@/components/editor/workspace-home';
+import {canvasProjectId} from '@/lib/project-route';
+import {applyTheme,LAST_THEME_KEY} from '@/lib/theme';
+import {openCanvasProject} from '@/services/workspaceProjects';
 import {CreatorAccountMenu,CreatorPanel} from './CreatorAccount';
 import './platform.css';
 
 const Editor=lazy(()=>import('../App.jsx'));
 const AdminWorkspace=lazy(()=>import('./AdminWorkspace'));
+
+// The workspace page has no editor; it keeps the theme last chosen on a canvas.
+function WorkspacePage({account,createOnOpen}) {
+    const [theme]=useState(()=>{try{return window.localStorage.getItem(LAST_THEME_KEY)||'dark';}catch{return 'dark';}});
+    useLayoutEffect(()=>applyTheme(theme),[theme]);
+    return <><WorkspaceHome createOnOpen={createOnOpen} accountSlot={account} onOpen={openCanvasProject}/><Toaster theme={theme==='dark'?'dark':'light'} position="top-center" offset={80} closeButton/></>;
+}
 
 function AuthForm({ change, onDone }) {
     const [error, setError] = useState(''), [busy, setBusy] = useState(false);
@@ -39,11 +52,15 @@ function AuthForm({ change, onDone }) {
 export default function PlatformRoot() {
     const [user,setUser]=useState(undefined),[ready,setReady]=useState(false),[error,setError]=useState('');
     const [projects,setProjects]=useState([]),[models,setModels]=useState([]),[tab,setTab]=useState(null);
-    const [path,setPath]=useState(window.location.pathname);
+    const [path,setPath]=useState(window.location.pathname),[missingProject,setMissingProject]=useState(false);
+    const [createOnOpen]=useState(()=>new URLSearchParams(window.location.search).has('create'));
+    const canvasId=canvasProjectId(path);
     const navigate=next=>{window.history.pushState({},'',next);setPath(next);setTab(null);};
     const isAdminPath=path==='/admin'||path.startsWith('/admin/');
     useEffect(()=>{
         window.__APP_BOOTED__=true;
+        // Consume the one-shot create request so a refresh does not reopen the dialog.
+        if(createOnOpen)window.history.replaceState(window.history.state,'',window.location.pathname);
         if(!platformEnabled)return;
         api('/auth/me').then(r=>{setCsrf(r.csrf_token);setUser(r.user);}).catch(e=>e.status===401?setUser(null):setError(e.message));
         const expired=()=>window.location.reload();
@@ -58,27 +75,31 @@ export default function PlatformRoot() {
         let canceled=false;setReady(false);
         Promise.all([api('/projects'),api('/models')]).then(([p,m])=>{
             if(canceled)return;
-            const selected=p.items.find(i=>i.id===window.localStorage.getItem(`elren:project:${user.id}`)&&!i.archived)||p.items.find(i=>!i.archived);
-            if(!selected)throw new Error('请联系管理员创建项目');
-            setPlatformContext({user,project:selected,models:m.items});setProjects(p.items);setModels(m.items);setReady(true);
+            // The canvas opens only the project named in its URL; a deleted or foreign project returns to the workspace.
+            const project=canvasId&&p.items.find(i=>i.id===canvasId&&!i.archived)||null;
+            if(canvasId&&!project){window.history.replaceState({},'','/');setPath('/');setMissingProject(true);}
+            setPlatformContext({user,project,models:m.items});setProjects(p.items);setModels(m.items);setReady(true);
         }).catch(e=>!canceled&&setError(e.message));
         return()=>{canceled=true;};
     },[user]);
+    useEffect(()=>{if(missingProject)toast.error('项目不存在或已删除');},[missingProject]);
     // Returning from administration refreshes only published creator models.
     useEffect(()=>{
-        if(!ready||isAdminPath)return;
+        if(!ready||isAdminPath||!canvasId)return;
         let active=true;
         api('/models').then(r=>{if(active){setModels(r.items);setPlatformContext({...getPlatformContext(),models:r.items});}}).catch(e=>active&&setError(e.message));
         return()=>{active=false;};
-    },[isAdminPath,ready]);
+    },[isAdminPath,ready,canvasId]);
     const logout=async()=>{try{await api('/auth/logout',{method:'POST'});window.location.reload();}catch(e){setError(e.message);}};
-    if(!platformEnabled)return <Suspense fallback={<ElrenLoadingScreen label="正在加载编辑器…"/>}><Editor/></Suspense>;
+    if(!platformEnabled)return canvasId?<Suspense fallback={<ElrenLoadingScreen label="正在加载编辑器…"/>}><Editor/></Suspense>:<WorkspacePage createOnOpen={createOnOpen}/>;
     if(error)return <main className="platform-login"><div className="platform-card"><ElrenBrand/><h1>工作空间暂不可用</h1><p role="alert">{error}</p><Button variant="outline" onClick={()=>window.location.reload()}>重试</Button></div></main>;
     if(user===undefined)return <ElrenLoadingScreen label="正在连接工作空间…"/>;
     if(!user||user.must_change_password)return <AuthForm change={!!user} onDone={setUser}/>;
     if(isAdminPath&&user.role!=='admin')return <main className="platform-login"><div className="platform-card"><ElrenBrand/><h1>此页面仅限管理员访问</h1><Button onClick={()=>navigate('/')}>返回创作空间</Button></div></main>;
     if(isAdminPath)return <Suspense fallback={<ElrenLoadingScreen label="正在加载管理后台…"/>}><AdminWorkspace key={path} user={user} path={path} navigate={navigate} onLogout={logout}/></Suspense>;
     if(!ready)return <ElrenLoadingScreen label="正在加载项目…"/>;
-    const account=<CreatorAccountMenu user={user} onOpen={setTab} onWorkspace={()=>window.dispatchEvent(new CustomEvent('platform:workspace'))} onAdmin={()=>navigate('/admin/models')} onLogout={logout}/>;
-    return <><Suspense fallback={<ElrenLoadingScreen label="正在加载编辑器…"/>}><Editor platformAccount={account} platformModels={models}/></Suspense>{tab&&<CreatorPanel kind={tab} user={user} projects={projects} onClose={()=>setTab(null)}/>}</>;
+    const panel=tab&&<CreatorPanel kind={tab} user={user} projects={projects} onClose={()=>setTab(null)}/>;
+    const account=props=><CreatorAccountMenu user={user} onOpen={setTab} onAdmin={()=>navigate('/admin/models')} onLogout={logout} {...props}/>;
+    if(!canvasId)return <><WorkspacePage createOnOpen={createOnOpen} account={account({placement:'header'})}/>{panel}</>;
+    return <><Suspense fallback={<ElrenLoadingScreen label="正在加载编辑器…"/>}><Editor platformAccount={account({onWorkspace:()=>window.dispatchEvent(new CustomEvent('platform:workspace'))})} platformModels={models}/></Suspense>{panel}</>;
 }

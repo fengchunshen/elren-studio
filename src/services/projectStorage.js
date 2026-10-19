@@ -1,7 +1,8 @@
 import { getPlatformContext, platformEnabled } from './platformContext';
-// Workspace navigation reloads the editor. Pin this instance to its original local project
+import { canvasProjectId } from '@/lib/project-route';
+// Project navigation reloads the editor. Pin this instance to the project in its URL
 // so a pending autosave cannot write into the next project during navigation.
-const localProjectId = window.localStorage.getItem('elren:local-project');
+const localProjectId = canvasProjectId();
 
 function prefix() {
     if (!platformEnabled) {

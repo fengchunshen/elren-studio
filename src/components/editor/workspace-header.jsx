@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, LayoutGrid, Plus, Pencil, Download, FolderOpen, Undo2, Redo2, Settings, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LayoutGrid, Plus, Pencil, Download, FolderOpen, Undo2, Redo2, Settings, MoreHorizontal } from 'lucide-react';
 import { ElrenMark } from '@/components/brand/elren-brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ export function WorkspaceHeader({ name, onRename, onWorkspace, onCreate, onTempl
                 <ElrenMark decorative className="[--elren-mark-size:26px]" /><span aria-hidden="true" className="h-4 w-px shrink-0 bg-border" /><span className="min-w-0 flex-1 truncate text-left text-sm">{name}</span><ChevronDown size={14} className="shrink-0 text-muted-foreground" />
             </Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56" onCloseAutoFocus={event => { if (rename) event.preventDefault(); }}>
-                    <DropdownMenuItem onSelect={onWorkspace}><LayoutGrid size={15} />工作空间</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={onWorkspace}><ArrowLeft size={15} />返回工作空间</DropdownMenuItem>
                     <DropdownMenuItem onSelect={onCreate}><Plus size={15} />新建项目</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => { setDraft(name); setError(''); setRename(true); }}><Pencil size={15} />重命名项目</DropdownMenuItem>
                     <DropdownMenuSeparator />
