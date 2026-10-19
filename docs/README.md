@@ -10,6 +10,7 @@
 
 ## 架构
 
+- [对话操作画布](./canvas-agent.md)：DSH 接入、启动、操作范围、状态和验收。
 - [前后端分离与模型用量计费方案](./architecture/backend-metering-plan.md)：平台模式的设计基线。
 
 ## 模型与渠道
@@ -20,6 +21,7 @@
 - [DeepSeek Flash 接入状态](./models/model-setup-deepseek.md)
 - [SpacetimeAI · GPT Image 2.5 接入](./models/model-setup-spacetime.md)
 - [模型库配置与测试说明书](./models/model-template-readme.md)：本地模式的模型库与请求模板。
+- [即梦本地代理配置](./models/jimeng-local.md)：本地模式通过 jimeng-api 使用即梦。
 
 ## 调研与对照
 
