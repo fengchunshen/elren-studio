@@ -228,13 +228,14 @@ class AgentProcess:
         if self.stopping or not session or session.lease_owner != self.owner or not user or not user.active or not project or project.archived:
             raise ValueError('会话已停止或项目不可访问')
 
-    async def model(self, body):
+    async def model(self, body, *, title_only=False):
         if self.calls >= 32: raise ValueError('本轮处理步骤较多，请确认当前结果后继续')
         self.calls += 1
         if len(json.dumps(body)) > 1500000: raise ValueError('当前画布内容较多，请缩小选区后重试')
         task_id = None
         with self.factory() as db:
-            session = db.get(CanvasAgentSession, self.id); self.ensure_owner(db, session)
+            session = db.get(CanvasAgentSession, self.id)
+            if not title_only: self.ensure_owner(db, session)
             user = db.get(User, session.user_id)
             payload = dict(project_id=session.project_id, model_offering_id=session.offering_id, operation='text.generate',
                            input={'messages':[{'role':'user','content':'画布助手'}], 'parameters':{}}, source={'kind':'canvas.agent','session_id':self.id})
@@ -248,7 +249,7 @@ class AgentProcess:
             request = {'model':offering.upstream_model, 'messages':body['messages'], 'tools':body.get('tools', []),
                        'stream':False, **payload['input']['parameters']}
             # A complete graph includes shot content and edges in one atomic call.
-            request['max_tokens'] = min(int(request.get('max_tokens', 8192)), 8192)
+            request['max_tokens'] = 64 if title_only else min(int(request.get('max_tokens', 8192)), 8192)
             if 'deepseek' in offering.upstream_model.lower(): request['thinking'] = {'type':'disabled'}
             # Internal trusted tool messages are recorded intact, never accepted by /tasks from arbitrary clients.
             payload['input']['messages'] = body['messages']; payload['input']['tools'] = body.get('tools', [])

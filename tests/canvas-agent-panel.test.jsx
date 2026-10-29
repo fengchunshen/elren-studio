@@ -10,6 +10,23 @@ vi.mock('@/services/projectStorage', () => ({ captureProjectStorage:() => ({getI
 afterEach(() => {cleanup();vi.clearAllMocks();});
 const model={id:'model-1',displayName:'DeepSeek Flash',platformOperation:'text.generate'};
 
+it('switches history from the header and returns to a new conversation without sending', async () => {
+    const row={id:'history-1', title:'山野来信广告旁白创作', messages:[{id:'m1',role:'user',content:'首次创作要求'}],status:'idle',actions:[]};
+    api.mockImplementation(async path => path === '/canvas-agent/status' ? {available:true}
+        : path.startsWith('/canvas-agent/sessions?') ? {items:[row]} : row);
+    render(<CanvasAgentPanel open ready projectId="project-1" models={[model]} onAction={vi.fn()} nodeName={() => ''} />);
+    const select=await screen.findByRole('button',{name:'创作对话'});
+    await screen.findByText('首次创作要求');
+    expect(select.closest('header')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'新建创作对话'}));
+    expect(select.textContent).toContain('新对话');
+    expect(screen.queryByText('首次创作要求')).toBeNull();
+    fireEvent.click(select);
+    fireEvent.click(await screen.findByRole('button',{name:'打开对话：'+row.title}));
+    await screen.findByText('首次创作要求');
+    expect(api.mock.calls.some(([,options]) => options?.method === 'POST')).toBe(false);
+});
+
 it('exposes the closed assistant through a directly accessible launcher', () => {
     const onOpen=vi.fn();
     render(<CanvasAgentPanel open={false} ready={false} projectId="project" models={[model]} onOpen={onOpen} nodeName={() => ''} />);

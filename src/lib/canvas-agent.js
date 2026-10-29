@@ -11,6 +11,7 @@ export function canvasMessageReference(node, connections, history = []) {
         version:agentNodeVersion(node, connections), text:nodeText(node).join('\n').slice(0,8000),
         prompt:String(node.settings?.videoPrompt ?? node.settings?.prompt ?? '').slice(0,8000),
         media_types:[...new Set(media.map(item => item.type))], preview_url:media.find(item => item.type === 'image')?.url || '',
+        preview_video_url:media.find(item => item.type === 'video')?.url || '',
     };
 }
 

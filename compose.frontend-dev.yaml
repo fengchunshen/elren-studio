@@ -1,0 +1,5 @@
+# Keep the existing API gateway while Vite serves the frontend on 8081.
+services:
+  web:
+    ports: !override
+      - "127.0.0.1:8082:80"

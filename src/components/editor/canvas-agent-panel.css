@@ -122,3 +122,18 @@
     .agent-orb-button:is(:hover, :focus-visible) .agent-orb-sheen,
     .agent-panel { animation: none; }
 }
+
+@media (hover: none) {
+  .agent-history-time { visibility: hidden; }
+  .agent-history-actions { opacity: 1; pointer-events: auto; }
+}
+
+/* Popper's positioning wrapper must also let the pointer through while media loads
+   and its bounds are measured; otherwise it can interrupt the anchor's hover. */
+[data-radix-popper-content-wrapper]:has(> .agent-reference-preview) { pointer-events: none; }
+.agent-reference-remove { opacity: 0; pointer-events: none; }
+.agent-reference:hover .agent-reference-remove,
+.agent-reference:focus-within .agent-reference-remove { opacity: 1; pointer-events: auto; }
+@media (hover: none) {
+    .agent-reference-remove { opacity: 1; pointer-events: auto; }
+}

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:platform": "node scripts/dev-platform.mjs",
     "dev:all": "python3 -u dev.py all",
     "dev:stop": "python3 -u dev.py stop",
     "dev:setup": "python3 dev.py setup",

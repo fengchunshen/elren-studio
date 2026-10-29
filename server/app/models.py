@@ -41,6 +41,8 @@ class CanvasAgentSession(Entity, Base):
     offering_id: Mapped[str] = mapped_column(ForeignKey("model_offerings.id"))
     client_id: Mapped[str] = mapped_column(String(100))
     title: Mapped[str] = mapped_column(String(100), default="新对话")
+    title_manual: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     status: Mapped[str] = mapped_column(String(30), default="idle")
     messages: Mapped[list] = mapped_column(JSON, default=list)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)

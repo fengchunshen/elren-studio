@@ -1,4 +1,5 @@
 import React from 'react';
+import { GenerationDurationOptions } from './generation-duration-options';
 import { Check, ChevronDown, Scan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -50,12 +51,13 @@ export function RatioIcon({ value, className }) {
     </span>;
 }
 
-export function GenerationOptions({ label, value, values, onChange, ratios = false, formatValue = value => value }) {
+export function GenerationOptions({ label, value, values, onChange, ratios = false, horizontal = false, formatValue = value => value }) {
+    if (horizontal) return <GenerationDurationOptions {...{ label, value, values, onChange, formatValue }} />;
     const adaptive = ratios && values.includes('auto');
     const display = option => option === 'auto' ? '自适应' : formatValue(option);
     return <fieldset className="min-w-0 space-y-2">
-        <legend className="mb-2 px-1 text-xs text-muted-foreground">{label}</legend>
-        <div className={cn('grid gap-1 rounded-2xl bg-foreground/[0.06] p-1', ratios ? adaptive ? 'grid-cols-[56px_repeat(5,minmax(0,1fr))] auto-rows-[48px]' : 'grid-cols-5' : '')}
+        <legend className="px-1 text-xs text-muted-foreground">{label}</legend>
+        <div className={cn('grid gap-1 rounded-2xl bg-foreground/[0.06] p-1', ratios ? adaptive ? 'grid-cols-[56px_repeat(5,minmax(0,1fr))] auto-rows-[48px]' : values.length === 6 ? 'grid-cols-6' : 'grid-cols-5' : '')}
             style={!ratios ? { gridTemplateColumns: `repeat(${Math.min(values.length, 4)}, minmax(0, 1fr))` } : undefined}>
             {values.map(option => <Button key={option} type="button" variant="ghost" aria-pressed={option === value}
                 aria-label={`${label} ${display(option)}`} onClick={() => onChange(option)}

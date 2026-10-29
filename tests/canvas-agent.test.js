@@ -3,6 +3,12 @@ import { agentNodeVersion, applyAgentPatch, canvasAgentContext, canvasMessageRef
 
 const nodes = () => ['a','b','c'].map(id => ({ id, type:'text-node', title:'同名', x:0, y:0, width:280, height:200, settings:{text:id} }));
 describe('canvas agent commands', () => {
+    it('keeps video previews local while sending the reference identity', () => {
+        const reference=canvasMessageReference({id:'video',type:'gen-video',content:'https://example.com/clip.mp4',settings:{}},[]);
+        expect(reference.preview_video_url).toBe('https://example.com/clip.mp4');
+        expect(messageReferencePayload([reference])[0].preview_video_url).toBeUndefined();
+        expect(messageReferencePayload([reference])[0].media_types).toEqual(['video']);
+    });
     it('captures stable reference identity and content without sending preview URLs', () => {
         const original=nodes()[1];
         const reference=canvasMessageReference(original,[]);

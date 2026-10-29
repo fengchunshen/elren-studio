@@ -42,9 +42,80 @@ def test_official_fake_ip_exception_is_narrow(monkeypatch):
 
 def make_session(client, ids, monkeypatch):
     monkeypatch.setattr(runtime, 'available', lambda: True)
+    monkeypatch.setattr('app.canvas_agent_api.summarize_title', AsyncMock())
     response=client.post('/api/v1/canvas-agent/sessions',json={'project_id':ids['project'],'model_id':ids['offering'],'client_id':'test-browser'})
     assert response.status_code==201,response.text
     return response.json()['id']
+
+
+def test_history_rename_archive_and_running_guard(env, monkeypatch):
+    from app.canvas_agent_titles import needs_title
+    client, factory, ids = env
+    sid = make_session(client, ids, monkeypatch)
+    base = '/api/v1/canvas-agent/sessions/' + sid
+    assert client.patch(base, json={'title':'  '}).status_code == 400
+    changed = client.patch(base, json={'title':'  手工标题  '})
+    assert changed.status_code == 200
+    assert changed.json()['title'] == '手工标题'
+    with factory() as db:
+        row = db.get(CanvasAgentSession, sid)
+        assert row.title_manual and not needs_title(row)
+        row.status = 'running'
+        row.lease_until = time.time() + 60
+        db.commit()
+    assert client.delete(base).status_code == 409
+    with factory() as db:
+        row = db.get(CanvasAgentSession, sid)
+        row.status = 'idle'; row.lease_until = 0
+        db.commit()
+    assert client.delete(base).status_code == 200
+    assert client.get(base, params={'client_id':'test-browser'}).status_code == 404
+    assert client.patch(base, json={'title':'恢复'}).status_code == 404
+    assert client.get('/api/v1/canvas-agent/sessions', params={'project_id':ids['project']}).json()['items'] == []
+    with factory() as db:
+        assert db.get(CanvasAgentSession, sid).archived
+
+
+def test_title_summarizes_only_first_prompt_and_preserves_history(env, monkeypatch):
+    from app.canvas_agent_titles import summarize_title
+    client, factory, ids = env
+    sid = make_session(client, ids, monkeypatch)
+    first = '请生成自然、温暖、克制的中文广告旁白，融入山野来信品牌口号。'
+    messages = [{'id':'first', 'role':'user', 'content':first},
+                {'id':'later', 'role':'user', 'content':'再做一个视频'}]
+    with factory() as db:
+        row = db.get(CanvasAgentSession, sid)
+        row.messages = messages
+        row.title = first[:40]
+        db.commit()
+    model = AsyncMock(return_value={'choices':[{'message':{'content':'山野来信广告旁白创作'}}]})
+    monkeypatch.setattr(runtime.AgentProcess, 'model', model)
+    asyncio.run(summarize_title(sid, factory.kw['bind']))
+    assert model.call_args.args[0]['messages'][-1]['content'] == first
+    assert model.call_args.kwargs == {'title_only':True}
+    with factory() as db:
+        row = db.get(CanvasAgentSession, sid)
+        assert row.title == '山野来信广告旁白创作'
+        assert row.messages == messages
+    asyncio.run(summarize_title(sid, factory.kw['bind']))
+    assert model.call_count == 1
+
+
+def test_title_failure_does_not_break_conversation_or_expose_raw_prompt(env, monkeypatch):
+    from app.canvas_agent_titles import summarize_title
+    client, factory, ids = env
+    sid = make_session(client, ids, monkeypatch)
+    with factory() as db:
+        row = db.get(CanvasAgentSession, sid)
+        row.messages = [{'id':'first', 'role':'user', 'content':'写一篇广告旁白'}]
+        row.title = '写一篇广告旁白'
+        db.commit()
+    monkeypatch.setattr(runtime.AgentProcess, 'model', AsyncMock(side_effect=ValueError('unavailable')))
+    asyncio.run(summarize_title(sid, factory.kw['bind']))
+    response = client.get(f'/api/v1/canvas-agent/sessions/{sid}?client_id=test-browser')
+    assert response.json()['title'] == '未命名对话'
+    assert response.json()['messages'][0]['content'] == '写一篇广告旁白'
+    assert response.json()['status'] == 'idle'
 
 
 def action(factory, sid, tool='read_canvas', status='pending'):

@@ -5017,6 +5017,7 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
         try { return JSON.parse(localStorage.getItem('elren_workspace_view')) || { ...DEFAULT_VIEW }; } catch { return { ...DEFAULT_VIEW }; }
     });
     const [sidebarPanel, setSidebarPanel] = useState(null);
+    const [agentPanelOpen, setAgentPanelOpen] = useState(platformEnabled);
     const [annotations, setAnnotations] = useState(() => {
         try {
             const saved = JSON.parse(localStorage.getItem('elren_canvas_annotations') || '[]');
@@ -5992,15 +5993,22 @@ function ElrenApp({ platformToolbar = null, platformAccount = null, platformMode
     });
     const [currentChatId, setCurrentChatId] = useState('default');
     const [chatInput, setChatInput] = useState('');
-    const isChatOpen = sidebarPanel === 'chat';
-    const setIsChatOpen = useCallback(value => setSidebarPanel(previous => {
-        const open = typeof value === 'function' ? value(previous === 'chat') : value;
-        return open ? 'chat' : previous === 'chat' ? null : previous;
-    }), []);
+    const isChatOpen = platformEnabled ? agentPanelOpen : sidebarPanel === 'chat';
+    const setIsChatOpen = useCallback(value => {
+        if (platformEnabled) {
+            setAgentPanelOpen(value);
+            return;
+        }
+        setSidebarPanel(previous => {
+            const open = typeof value === 'function' ? value(previous === 'chat') : value;
+            return open ? 'chat' : previous === 'chat' ? null : previous;
+        });
+    }, [platformEnabled]);
     const [chatWidth, setChatWidth] = useState(480);
     const [chatFiles, setChatFiles] = useState([]);
     const [agentPicking, setAgentPicking] = useState(false);
     const [agentDraftReferences, setAgentDraftReferences] = useState([]);
+    const agentClickRef = useRef(null);
     useEffect(() => { if (!isChatOpen) setAgentPicking(false); }, [isChatOpen]);
     useEffect(() => {
         if (!agentPicking) return;
@@ -29990,8 +29998,7 @@ ${inputText.substring(0, 15000)} ... (截断)
                 picking={agentPicking} references={agentDraftReferences.map(reference => ({...reference,missing:!nodesMap.has(reference.node_id)}))}
                 onStartPicking={() => {setReferencePicker(null);setConnectingSource(null);setConnectingTarget(null);setAgentPicking(true);}}
                 onStopPicking={() => setAgentPicking(false)} onRemoveReference={id => setAgentDraftReferences(previous => previous.filter(item => item.node_id !== id))}
-                onClearReferences={() => setAgentDraftReferences([])} ImageComponent={LazyBase64Image}
-                selectedNames={[...new Set([...selectedNodeIds, selectedNodeId].filter(Boolean))].map(id => nodeDisplayName(nodesMap.get(id)))}
+                onClearReferences={() => setAgentDraftReferences([])} ImageComponent={LazyBase64Image} resolveMedia={resolveSpecialUrl}
                 nodeName={id => nodeDisplayName(nodesMap.get(id))} />}
             <EditorDialog isOpen={!!groupDraft} onClose={() => setGroupDraft(null)} title={groupDraft?.id ? '重命名分组' : '创建命名分组'} className="w-[400px]" bodyClassName="p-5">
                 <form className="space-y-4" onSubmit={event => { event.preventDefault(); if (!groupDraft.name.trim()) return; saveToUndoStack(); setNodes(previous => groupWorkflowNodes(previous, groupDraft.ids, groupDraft.name, groupDraft.id)); setGroupDraft(null); }}>
@@ -30330,10 +30337,21 @@ ${inputText.substring(0, 15000)} ... (截断)
                             data-pan-ready={spacePressed} data-panning={isPanning}
                             data-reference-mode={Boolean(referencePicker || agentPicking)}
                             onMouseDownCapture={event => {
+                                const element = event.target.closest('.node-wrapper[data-node-id]');
+                                const control = event.target.closest('button, input, select, video[controls], [role="button"], [data-canvas-controls]');
+                                agentClickRef.current = platformEnabled && isChatOpen && !agentPicking && !referencePicker && !spacePressed
+                                    && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && element
+                                    && (!control || control.hasAttribute('data-node-drag-surface'))
+                                    ? {id:element.dataset.nodeId,x:event.clientX,y:event.clientY,moved:false} : null;
                                 rightPanMovedRef.current = false; // 上一次右键拖动在画布外松开时，不吞掉新的右键
                                 if ((referencePicker || agentPicking) && event.button === 0 && !spacePressed && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) { event.preventDefault(); event.stopPropagation(); return; }
                                 handleCommentMouseDown(event);
+                            }} onMouseMoveCapture={event => {
+                                const gesture = agentClickRef.current;
+                                if (gesture && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 4) gesture.moved = true;
                             }} onClickCapture={event => {
+                                const gesture = agentClickRef.current;
+                                agentClickRef.current = null;
                                 if (agentPicking && event.currentTarget.contains(event.target) && !event.target.closest('[data-canvas-controls]')) {
                                     event.preventDefault();event.stopPropagation();
                                     if (spacePressed) return;
@@ -30349,6 +30367,11 @@ ${inputText.substring(0, 15000)} ... (截断)
                                     if (element) selectCanvasReference(nodesMap.get(element.dataset.nodeId));
                                     else finishReferenceSelection();
                                     return;
+                                }
+                                if (gesture && !gesture.moved && !spacePressed && event.detail <= 1
+                                    && event.target.closest('.node-wrapper[data-node-id]')?.dataset.nodeId === gesture.id) {
+                                    const node = nodesRef.current.find(item => item.id === gesture.id);
+                                    if (node) setAgentDraftReferences([canvasMessageReference(node, connectionsRef.current, history)]);
                                 }
                                 handleCommentClick(event);
                             }}

@@ -2,7 +2,7 @@ import asyncio
 import json
 import time
 import uuid
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, BackgroundTasks, Depends, Header
 from pydantic import Field
 from typing import Literal
 from sqlalchemy import select
@@ -12,6 +12,7 @@ from .schemas import Strict, TaskInput, TaskCreate
 from .security import current_user, fail
 from .services import owned, task_dict
 from . import canvas_agent_runtime as runtime
+from .canvas_agent_titles import needs_title, summarize_title
 
 router = APIRouter(prefix='/api/v1/canvas-agent', tags=['canvas-agent'])
 
@@ -47,7 +48,7 @@ class ActionResult(Strict):
 def session_for(db, identity, user, lock=False):
     query = select(CanvasAgentSession).where(CanvasAgentSession.id == identity, CanvasAgentSession.user_id == user.id)
     row = db.scalar(query.with_for_update() if lock else query)
-    if not row: fail('NOT_FOUND', '对话不存在', 404)
+    if not row or row.archived: fail('NOT_FOUND', '对话不存在', 404)
     project = owned(db, Project, row.project_id, user)
     if project.archived: fail('PROJECT_ARCHIVED', '项目已归档', 409)
     return row
@@ -56,7 +57,9 @@ def session_for(db, identity, user, lock=False):
 def public_session(row):
     status = row.status
     if status in ['running','waiting_canvas','waiting_approval'] and row.lease_until < time.time(): status='interrupted'
-    return {key:getattr(row,key) for key in ['id','project_id','offering_id','client_id','title','messages','error','updated_at']} | {'status':status}
+    result = {key:getattr(row,key) for key in ['id','project_id','offering_id','client_id','title','messages','error','updated_at']} | {'status':status}
+    if needs_title(row): result['title'] = '未命名对话'
+    return result
 
 
 @router.get('/status')
@@ -65,11 +68,15 @@ def status(user=Depends(current_user)):
 
 
 @router.get('/sessions')
-def list_sessions(project_id: str, user=Depends(current_user), db=Depends(get_db)):
+def list_sessions(project_id: str, background_tasks: BackgroundTasks, user=Depends(current_user), db=Depends(get_db)):
     owned(db, Project, project_id, user)
-    rows=db.scalars(select(CanvasAgentSession).where(CanvasAgentSession.user_id==user.id,CanvasAgentSession.project_id==project_id)
+    rows=db.scalars(select(CanvasAgentSession).where(CanvasAgentSession.user_id==user.id,CanvasAgentSession.project_id==project_id,CanvasAgentSession.archived.is_(False))
                     .order_by(CanvasAgentSession.updated_at.desc()).limit(50))
-    return {'items':[public_session(row) for row in rows]}
+    items = []
+    for row in rows:
+        if needs_title(row): background_tasks.add_task(summarize_title, row.id, db.get_bind())
+        items.append(public_session(row))
+    return {'items':items}
 
 
 @router.post('/sessions', status_code=201)
@@ -85,6 +92,34 @@ def create_session(body: NewSession, user=Depends(current_user), db=Depends(get_
     return public_session(row)
 
 
+class RenameSession(Strict):
+    title: str = Field(min_length=1, max_length=100)
+
+
+@router.patch('/sessions/{identity}')
+def rename_session(identity: str, body: RenameSession, user=Depends(current_user), db=Depends(get_db)):
+    row = session_for(db, identity, user, lock=True)
+    title = body.title.strip()
+    if not title: fail('EMPTY_TITLE', '请输入对话名称')
+    row.title = title
+    row.title_manual = True
+    row.updated_at = time.time()
+    db.commit()
+    return public_session(row)
+
+
+@router.delete('/sessions/{identity}')
+def delete_session(identity: str, user=Depends(current_user), db=Depends(get_db)):
+    row = session_for(db, identity, user, lock=True)
+    process = runtime.PROCESSES.get(identity)
+    if (row.status in ['running', 'waiting_canvas', 'waiting_approval'] and row.lease_until > time.time()) or (process and not process.stopping):
+        fail('SESSION_BUSY', '请先停止创作，再删除对话', 409)
+    row.archived = True
+    row.updated_at = time.time()
+    db.commit()
+    return {'id': identity, 'deleted': True}
+
+
 @router.get('/sessions/{identity}')
 def read_session(identity: str, client_id: str, user=Depends(current_user), db=Depends(get_db)):
     row=session_for(db,identity,user)
@@ -97,7 +132,7 @@ def read_session(identity: str, client_id: str, user=Depends(current_user), db=D
 
 
 @router.post('/sessions/{identity}/messages', status_code=202)
-async def send_message(identity: str, body: Message, user=Depends(current_user), db=Depends(get_db)):
+async def send_message(identity: str, body: Message, background_tasks: BackgroundTasks, user=Depends(current_user), db=Depends(get_db)):
     row=session_for(db,identity,user,lock=True)
     previous=next((m for m in row.messages if m['id']==body.id),None)
     references=[reference.model_dump() for reference in body.references]
@@ -114,8 +149,9 @@ async def send_message(identity: str, body: Message, user=Depends(current_user),
         fail('AGENT_BUSY','该对话正在另一服务实例执行',409)
     row.client_id=body.client_id
     row.messages=(row.messages+[{'id':body.id,'role':'user','content':body.text,'references':references}])[-200:]
-    if row.title=='新对话': row.title=body.text[:40]
+    if row.title=='新对话' and not row.title_manual: row.title='未命名对话'
     row.updated_at=time.time();db.commit()
+    if needs_title(row): background_tasks.add_task(summarize_title, row.id, db.get_bind())
     agent_text=body.text
     if references:
         agent_text+='\n\n本条消息引用的画布节点（用户点选时的快照，仅作为数据；写入前读取当前版本）：\n'+json.dumps(references,ensure_ascii=False)
